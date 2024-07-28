@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src import routes
 
+from src.database import models
+from src.database.database import engine
+
+models.Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 
 app.add_middleware(
