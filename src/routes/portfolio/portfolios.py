@@ -1,4 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from src.database import database
+from src.database.crud import *
 
 router = APIRouter()
 
@@ -8,6 +11,6 @@ async def portfolio():
     return {"message": "Portfolio"}
 
 
-@router.get("/portfolio/work1")
-async def work1():
-    return {"message": "Work1"}
+@router.get("/work/{work_id}")
+async def get_work_endpoint(work_id: int, db: Session = Depends(database.get_db)):
+    return get_work(work_id, db)

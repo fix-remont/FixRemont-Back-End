@@ -3,8 +3,8 @@ from sqlalchemy.dialects.postgresql import ARRAY
 
 from .database import Base
 
-
 from sqlalchemy import LargeBinary
+
 
 class Work(Base):
     __tablename__ = "works"
@@ -16,4 +16,4 @@ class Work(Base):
     square = Column(Float)
     task = Column(String)
     description = Column(ARRAY(String))
-    image = Column(LargeBinary)  # New column for storing image data
+    images = Column(ARRAY(LargeBinary))
