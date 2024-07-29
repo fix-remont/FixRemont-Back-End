@@ -9,6 +9,12 @@ class ProjectType(str, Enum):
     HOUSE = "house"
 
 
+class PostType(str, Enum):
+    FLAT_RENOVATION = "flat_renovation"
+    HOUSE_BUILDING = "house_building"
+    NEWS = "news"
+
+
 class WorkBase(BaseModel):
     title: str
     project_type: ProjectType
@@ -27,4 +33,21 @@ class WorkCreate(WorkBase):
 
 
 class Work(WorkBase):
+    pass
+
+
+class PostBase(BaseModel):
+    title: str
+    post_type: PostType
+    content: List[str]
+
+    class Config:
+        orm_mode = True
+
+
+class PostCreate(PostBase):
+    pass
+
+
+class Post(PostBase):
     pass

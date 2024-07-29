@@ -1,12 +1,18 @@
-from typing import Optional
+from typing import Optional, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from src.database import database
-from src.database.crud import get_all_works, get_work
+from src.database import database, schemas
+from src.database.crud import get_all_works, get_work, create_work
 from src.database.schemas import ProjectType
 
 router = APIRouter()
+
+
+@router.post("/create-work/", response_model=schemas.Work)
+async def create_work_endpoint(work: schemas.WorkCreate = Depends(), files: List[UploadFile] = File(...),
+                               db: Session = Depends(database.get_db)):
+    return create_work(work, files, db)
 
 
 @router.get("/portfolio")
