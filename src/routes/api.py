@@ -17,9 +17,6 @@ async def create_work_endpoint(work: schemas.WorkCreate = Depends(), files: List
     return create_work(work, files, db)
 
 
-
-
-
 @router.get("/")
 async def home():
     return {"message": "Home"}
@@ -45,6 +42,6 @@ async def gratitude():
     return {"message": "Gratitude"}
 
 
-@router.get("/{path:path}")
-async def page_not_found(path: str):
-    return {"message": "Page Not Found"}
+# @router.get("/{path:path}")
+# async def page_not_found(path: str):
+#     return {"message": "Page Not Found"}
