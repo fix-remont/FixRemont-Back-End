@@ -4,7 +4,7 @@ from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from src.database import database, schemas
+from src.database import db as database, schemas
 
 router = APIRouter()
 

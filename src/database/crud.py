@@ -3,11 +3,11 @@ from fastapi import HTTPException, UploadFile
 from src.database import models, schemas
 import base64
 from typing import Optional, List
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.schemas import ProjectType, PostType
 
 
-def create_work(work: schemas.WorkCreate, files: list[UploadFile], db: Session):
+async def create_work(work: schemas.WorkCreate, files: list[UploadFile], db: AsyncSession):
     if len(files) == 0:
         raise HTTPException(status_code=400, detail="No files")
     images = []
@@ -24,8 +24,8 @@ def create_work(work: schemas.WorkCreate, files: list[UploadFile], db: Session):
         images=images
     )
     db.add(work_data)
-    db.commit()
-    db.refresh(work_data)
+    await db.commit()
+    await db.refresh(work_data)
     return work_data
 
 
@@ -71,7 +71,7 @@ def get_all_works(project_type: Optional[str], db: Session):
     return works_data
 
 
-def create_post(post: schemas.PostCreate, files: List[UploadFile], db: Session):
+async def create_post(post: schemas.PostCreate, files: List[UploadFile], db: AsyncSession):
     if len(files) == 0:
         raise HTTPException(status_code=400, detail="No files")
     images = []
@@ -84,8 +84,8 @@ def create_post(post: schemas.PostCreate, files: List[UploadFile], db: Session):
         images=images
     )
     db.add(post_data)
-    db.commit()
-    db.refresh(post_data)
+    await db.commit()
+    await db.refresh(post_data)
     return post_data
 
 

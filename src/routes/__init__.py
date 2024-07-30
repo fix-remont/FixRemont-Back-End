@@ -1,10 +1,6 @@
 from fastapi import APIRouter
 
-from . import api
-from .services import services
-from .partnership import partnerships
-from .portfolio import portfolios
-from .blog import blogs
+from . import api, blogs, partnerships, portfolios, services
 
 
 def meta() -> APIRouter:

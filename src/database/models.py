@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Enum, ARRAY, LargeBinary
-from src.database.database import Base
+from src.database.db import Base
 from src.database.schemas import ProjectType, PostType
 
 

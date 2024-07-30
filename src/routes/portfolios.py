@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from src.database import database, schemas
+from src.database import db as database, schemas
 from src.database.crud import get_all_works, get_work, create_work
 from src.database.schemas import ProjectType
 
