@@ -30,3 +30,40 @@ class UserUpdate(schemas.BaseUserUpdate):
     name: Optional[str] = None
     surname: Optional[str] = None
     phone: Optional[str] = None
+
+
+from pydantic import BaseModel
+from typing import Optional
+import uuid
+
+
+class ClientCreate(BaseModel):
+    object: str
+    tariff: str
+    location: str
+    rate: int
+    current_stage: str
+
+
+class ClientUpdate(BaseModel):
+    object: Optional[str] = None
+    tariff: Optional[str] = None
+    location: Optional[str] = None
+    rate: Optional[int] = None
+    current_stage: Optional[str] = None
+
+
+class ContractCreate(BaseModel):
+    object: str
+    tariff: str
+    location: str
+    total_cost: int
+    current_stage: str
+
+
+class ContractUpdate(BaseModel):
+    object: Optional[str] = None
+    tariff: Optional[str] = None
+    location: Optional[str] = None
+    total_cost: Optional[int] = None
+    current_stage: Optional[str] = None

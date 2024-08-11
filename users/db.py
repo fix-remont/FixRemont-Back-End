@@ -1,10 +1,11 @@
+import uuid
 from typing import Any, AsyncGenerator
 
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
-from sqlalchemy import Column, Enum, create_engine, text, String
+from sqlalchemy import Column, Enum, create_engine, text, String, Integer, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, relationship
 import enum
 
 DATABASE_URL = "postgresql+asyncpg://postgres:sdr@localhost:5432/postgres"
@@ -23,14 +24,49 @@ class UserType(str, enum.Enum):
     INDIVIDUAL = "individual"
 
 
+import random
+import string
+
+
 class User(SQLAlchemyBaseUserTableUUID, Base):
     user_type = Column(Enum(UserType, name="usertype"), nullable=False)
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)
     phone = Column(String, nullable=False)
+    user_referral_code = Column(String, unique=True, nullable=False, default=lambda: ''.join(random.choices(string.ascii_uppercase + string.digits, k=16)))
+    others_referral_code = Column(String, nullable=True)
+    clients = relationship("Client", back_populates="user")
+    contracts = relationship("Contract", back_populates="user")
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+
+
+from sqlalchemy.dialects.postgresql import UUID
+
+
+class Client(Base):
+    __tablename__ = "clients"
+    id = Column(Integer, primary_key=True, index=True)
+    object = Column(String, nullable=False)
+    tariff = Column(String, nullable=False)
+    location = Column(String, nullable=False)
+    rate = Column(Integer, nullable=False)
+    current_stage = Column(String, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
+    user = relationship("User", back_populates="clients")
+
+
+class Contract(Base):
+    __tablename__ = "contracts"
+    id = Column(Integer, primary_key=True, index=True)
+    object = Column(String, nullable=False)
+    tariff = Column(String, nullable=False)
+    location = Column(String, nullable=False)
+    total_cost = Column(Integer, nullable=False)
+    current_stage = Column(String, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
+    user = relationship("User", back_populates="contracts")
 
 
 async def create_db_and_tables():
