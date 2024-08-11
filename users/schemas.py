@@ -3,6 +3,9 @@ from fastapi_users import schemas
 from pydantic import BaseModel
 from typing import Optional
 import enum
+from pydantic import BaseModel
+from typing import Optional
+import uuid
 
 
 class UserType(str, enum.Enum):
@@ -30,11 +33,6 @@ class UserUpdate(schemas.BaseUserUpdate):
     name: Optional[str] = None
     surname: Optional[str] = None
     phone: Optional[str] = None
-
-
-from pydantic import BaseModel
-from typing import Optional
-import uuid
 
 
 class ClientCreate(BaseModel):
@@ -67,3 +65,7 @@ class ContractUpdate(BaseModel):
     location: Optional[str] = None
     total_cost: Optional[int] = None
     current_stage: Optional[str] = None
+
+
+class ReferralCodeInput(BaseModel):
+    user_referral_code: str

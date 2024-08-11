@@ -10,9 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 from users.db import User, Client, Contract, get_async_session
-from users.schemas import ClientCreate, ClientUpdate, ContractCreate, ContractUpdate
+from users.schemas import ClientCreate, ClientUpdate, ContractCreate, ContractUpdate, ReferralCodeInput
 from users.users import current_active_user
 import uuid
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -118,13 +119,6 @@ async def partnership_page(user: User = Depends(current_active_user)):
 @router.get("/referral_code")
 async def get_referral_code(user: User = Depends(current_active_user)):
     return {"referral_code": user.user_referral_code}
-
-
-from pydantic import BaseModel
-
-
-class ReferralCodeInput(BaseModel):
-    user_referral_code: str
 
 
 # TODO: Fix POST bug
