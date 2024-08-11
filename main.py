@@ -5,6 +5,8 @@ from users.users import auth_backend, fastapi_users
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src import routes
+from fastapi import FastAPI
+from users.routes import router as user_router
 
 
 @asynccontextmanager
@@ -46,3 +48,4 @@ app.include_router(
     tags=["users"],
 )
 app.include_router(routes.meta())
+app.include_router(user_router, prefix="/user", tags=["user"])
