@@ -1,13 +1,10 @@
-from fastapi import HTTPException, UploadFile, Depends
+from fastapi import HTTPException
 from sqlalchemy import select
-
-from src import database
 from src.database import models, schemas
 import base64
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.schemas import ProjectType, PostType
-from src.database.db import get_db
 
 
 async def get_work(work_id: int, db: AsyncSession):

@@ -1,7 +1,7 @@
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr, NonNegativeFloat, PositiveInt
-from typing import Optional, List, NewType
+from pydantic import BaseModel, NonNegativeFloat, PositiveInt
+from typing import List
 
 
 class ProjectType(str, Enum):

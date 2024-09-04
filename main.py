@@ -7,11 +7,11 @@ from users.db import create_db_and_tables, User, Client, Contract
 from src.database.models import Post, Work
 from users.schemas import UserCreate, UserRead, UserUpdate
 from users.users import auth_backend, fastapi_users
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src import routes, database
+from src import routes
 from users.routes import router as user_router
-from sqladmin import Admin, ModelView
+from sqladmin import Admin
 import base64
 from sqladmin import ModelView
 from markupsafe import Markup
