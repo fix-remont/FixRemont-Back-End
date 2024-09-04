@@ -16,7 +16,12 @@ import base64
 from sqladmin import ModelView
 from markupsafe import Markup
 from fastapi_storages import FileSystemStorage
-
+from sqladmin import Admin, ModelView
+from sqladmin.authentication import AuthenticationBackend
+from starlette.requests import Request
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,7 +31,35 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-admin = Admin(app, engine)
+
+class AdminAuth(AuthenticationBackend):
+    async def login(self, request: Request) -> bool:
+        request.session.update({"token": "your_token_here"})
+        if not User.is_superuser:
+            return False
+        return True
+
+    async def logout(self, request: Request) -> bool:
+        request.session.clear()
+        return True
+
+    async def authenticate(self, request: Request) -> bool:
+        token = request.session.get("token")
+        if not token:
+            return False
+        return True
+
+
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key_here")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+authentication_backend = AdminAuth(secret_key="your_secret_key_here")
+admin = Admin(app=app, engine=engine, authentication_backend=authentication_backend)
 
 
 class UserAdmin(ModelView, model=User):
@@ -149,14 +182,6 @@ admin.add_view(ClientAdmin)
 admin.add_view(ContractAdmin)
 admin.add_view(PostAdmin)
 admin.add_view(WorkAdmin)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
