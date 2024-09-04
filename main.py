@@ -59,6 +59,8 @@ class ContractAdmin(ModelView, model=Contract):
 class PostAdmin(ModelView, model=Post):
     column_list = [Post.id, Post.title, Post.post_type, Post.content, Post.images]
     column_searchable_list = [Post.title]
+    column_filters = [Post.post_type]
+    column_sortable_list = [Post.id, Post.title]
     can_create = True
     can_edit = True
     can_delete = True
@@ -101,6 +103,8 @@ class WorkAdmin(ModelView, model=Work):
     column_list = [Work.id, Work.title, Work.project_type, Work.deadline, Work.cost, Work.square, Work.task,
                    Work.description, Work.images]
     column_searchable_list = [Work.title]
+    column_filters = [Work.project_type]
+    column_sortable_list = [Work.id, Work.title, Work.cost, Work.square, Work.deadline]
     can_create = True
     can_edit = True
     can_delete = True
