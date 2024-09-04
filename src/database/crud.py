@@ -1,11 +1,13 @@
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException, UploadFile, Depends
 from sqlalchemy import select
 
+from src import database
 from src.database import models, schemas
 import base64
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.schemas import ProjectType, PostType
+from src.database.db import get_db
 
 
 async def get_work(work_id: int, db: AsyncSession):
@@ -31,11 +33,11 @@ async def get_all_works(project_type: Optional[str], db: AsyncSession):
         raise HTTPException(status_code=400, detail="Invalid project types")
 
     if project_type == 'all' or not project_type:
-        works = await db.execute(select(models.Work))
+        result = await db.execute(select(models.Work))
     else:
-        works = await db.execute(select(models.Work).filter(models.Work.project_type == project_type))
+        result = await db.execute(select(models.Work).filter(models.Work.project_type == project_type))
 
-    works = works.scalars().all()
+    works = result.scalars().all()
     works_data = []
     for work in works:
         work_data = {
@@ -46,7 +48,7 @@ async def get_all_works(project_type: Optional[str], db: AsyncSession):
             "square": work.square,
             "task": work.task,
             "description": work.description,
-            "images": [base64.b64encode(i).decode('utf-8') if i else None for i in work.images]
+            "images": [base64.b64encode(base64.b64decode(i)).decode('utf-8') if i else None for i in work.images]
         }
         works_data.append(work_data)
     return works_data
@@ -88,12 +90,7 @@ async def get_all_posts(post_type: Optional[str], db: AsyncSession):
     return posts_data
 
 
-async def create_work(work: schemas.WorkCreate, files: list[UploadFile], db: AsyncSession):
-    if len(files) == 0:
-        raise HTTPException(status_code=400, detail="No files")
-    images = []
-    for file in files:
-        images.append(file.file.read())
+async def create_work(work: schemas.WorkCreate, db: AsyncSession):
     work_data = models.Work(
         title=work.title,
         project_type=work.project_type,
@@ -102,7 +99,7 @@ async def create_work(work: schemas.WorkCreate, files: list[UploadFile], db: Asy
         square=work.square,
         task=work.task,
         description=work.description,
-        images=images
+        images=work.images,
     )
     db.add(work_data)
     await db.commit()
@@ -110,17 +107,12 @@ async def create_work(work: schemas.WorkCreate, files: list[UploadFile], db: Asy
     return work_data
 
 
-async def create_post(post: schemas.PostCreate, files: List[UploadFile], db: AsyncSession):
-    if len(files) == 0:
-        raise HTTPException(status_code=400, detail="No files")
-    images = []
-    for file in files:
-        images.append(file.file.read())
+async def create_post(post: schemas.PostCreate, db: AsyncSession):
     post_data = models.Post(
         title=post.title,
         post_type=post.post_type,
         content=post.content,
-        images=images
+        images=post.images
     )
     db.add(post_data)
     await db.commit()

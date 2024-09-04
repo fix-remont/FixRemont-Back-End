@@ -1,6 +1,9 @@
-from sqlalchemy import Column, Integer, String, Enum, ARRAY, LargeBinary
-from src.database.db import Base
+from sqlalchemy import create_engine, Column, Integer, String, Enum, ARRAY
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from src.database.schemas import ProjectType, PostType
+
+Base = declarative_base()
 
 
 class Work(Base):
@@ -13,7 +16,7 @@ class Work(Base):
     square = Column(Integer)
     task = Column(String)
     description = Column(ARRAY(String))
-    images = Column(ARRAY(LargeBinary))
+    images = Column(ARRAY(String))
 
 
 class Post(Base):
@@ -22,4 +25,12 @@ class Post(Base):
     title = Column(String, index=True)
     post_type = Column(Enum(PostType))
     content = Column(ARRAY(String))
-    images = Column(ARRAY(LargeBinary))
+    images = Column(ARRAY(String))
+
+
+engine = create_engine("postgresql+psycopg2://postgres:sdr@localhost:5432/postgres")
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
+session.commit()
+session.close()

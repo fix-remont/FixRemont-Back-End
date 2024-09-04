@@ -23,6 +23,7 @@ class WorkBase(BaseModel):
     square: NonNegativeFloat
     task: str
     description: List[str]
+    images: List[str]
 
     class Config:
         orm_mode = True
@@ -40,6 +41,7 @@ class PostBase(BaseModel):
     title: str
     post_type: PostType
     content: List[str]
+    images: List[str]
 
     class Config:
         orm_mode = True

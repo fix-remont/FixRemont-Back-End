@@ -10,9 +10,9 @@ router = APIRouter()
 
 
 @router.post("/create-work/", response_model=schemas.Work)
-async def create_work_endpoint(work: schemas.WorkCreate = Depends(), files: List[UploadFile] = File(...),
+async def create_work_endpoint(work: schemas.WorkCreate = Depends(),
                                db: AsyncSession = Depends(database.get_db)):
-    return await create_work(work, files, db)
+    return await create_work(work, db)
 
 
 @router.get("/portfolio")
