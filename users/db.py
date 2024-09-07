@@ -1,7 +1,6 @@
-import uuid
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
-
+from passlib.context import CryptContext
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from sqlalchemy import Column, Enum, create_engine, text, String, Integer, ForeignKey
@@ -28,10 +27,8 @@ class UserType(str, enum.Enum):
     INDIVIDUAL = "individual"
 
 
-from passlib.context import CryptContext
-
-# Ensure the correct hashing schemes are included
 pwd_context = CryptContext(schemes=["bcrypt", "argon2", "pbkdf2_sha256"], deprecated="auto")
+
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -62,8 +59,6 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         return pwd_context.verify(password, self.hashed_password)
 
 
-# Логин норм, а пароль не работает нормально
-# Хеш в говне
 class Client(Base):
     __tablename__ = "clients"
     id = Column(Integer, primary_key=True, index=True)
