@@ -1,10 +1,3 @@
-from fastapi import APIRouter, Depends
-from users.db import User, Client, Contract, get_async_session
-from users.users import current_active_user
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from fastapi import Depends
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -12,8 +5,6 @@ from sqlalchemy.orm import Session
 from users.db import User, Client, Contract, get_async_session
 from users.schemas import ClientCreate, ClientUpdate, ContractCreate, ContractUpdate, ReferralCodeInput
 from users.users import current_active_user
-import uuid
-from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -134,3 +125,8 @@ async def insert_referral_code(referral_code_input: ReferralCodeInput, user: Use
     await session.commit()
     await session.refresh(user)
     return {"message": "Referral code inserted successfully"}
+
+
+@router.get("/admin")
+async def admin_page(user: User = Depends(current_active_user)):
+    return {"message": f"Admin page for {user.email}, User Type: {user.user_type}"}

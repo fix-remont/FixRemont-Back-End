@@ -1,27 +1,28 @@
 from contextlib import asynccontextmanager
+from typing import Any
 from sqladmin.fields import FileField
 from src.database import schemas
 from src.database.crud import create_post, create_work
 from src.database.db import engine, get_db
 from users.db import create_db_and_tables, User, Client, Contract
-from src.database.models import Post, Work
+from src.database.models import Post, Work, session
 from users.schemas import UserCreate, UserRead, UserUpdate
 from users.users import auth_backend, fastapi_users
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from src import routes
 from users.routes import router as user_router
-from sqladmin import Admin
 import base64
-from sqladmin import ModelView
 from markupsafe import Markup
 from fastapi_storages import FileSystemStorage
 from sqladmin import Admin, ModelView
-from sqladmin.authentication import AuthenticationBackend
-from starlette.requests import Request
-from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+from sqladmin.authentication import AuthenticationBackend
+from starlette.requests import Request
+from sqlalchemy.future import select
+from users.db import User, get_async_session
+from uuid import UUID
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,28 +30,46 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
-
-
-class AdminAuth(AuthenticationBackend):
+class CustomAuthBackend(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
-        request.session.update({"token": "your_token_here"})
-        if not User.is_superuser:
-            return False
-        return True
+        form = await request.form()
+        username = form.get("username")
+        password = form.get("password")
+
+        async with get_async_session() as session:
+            result = await session.execute(select(User).where(User.email == username))
+            user = result.scalar_one_or_none()
+
+        if user and user.verify_password(password) and user.is_superuser:
+            request.session["user_id"] = str(user.id)
+            return True
+        return False
 
     async def logout(self, request: Request) -> bool:
-        request.session.clear()
+        request.session.pop("user_id", None)
         return True
 
-    async def authenticate(self, request: Request) -> bool:
-        token = request.session.get("token")
-        if not token:
-            return False
-        return True
+    async def authenticate(self, request: Request) -> Any | None:
+        user_id = request.session.get("user_id")
+        if user_id:
+            try:
+                UUID(user_id, version=4)
+            except ValueError:
+                return None
+
+            async with get_async_session() as session:
+                result = await session.execute(select(User).where(User.id == user_id))
+                user = result.scalar_one_or_none()
+                if user:
+                    return user
+        return None
 
 
-app.add_middleware(SessionMiddleware, secret_key="your_secret_key_here")
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="secret",
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -58,8 +77,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-authentication_backend = AdminAuth(secret_key="your_secret_key_here")
-admin = Admin(app=app, engine=engine, authentication_backend=authentication_backend)
+
+admin = Admin(app=app, engine=engine, authentication_backend=CustomAuthBackend(secret_key="secret"))
 
 
 class UserAdmin(ModelView, model=User):

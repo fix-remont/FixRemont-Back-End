@@ -1,4 +1,5 @@
 import uuid
+from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 
 from fastapi import Depends
@@ -27,6 +28,19 @@ class UserType(str, enum.Enum):
     INDIVIDUAL = "individual"
 
 
+from passlib.context import CryptContext
+
+# Ensure the correct hashing schemes are included
+pwd_context = CryptContext(schemes=["bcrypt", "argon2", "pbkdf2_sha256"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
 class User(SQLAlchemyBaseUserTableUUID, Base):
     user_type = Column(Enum(UserType, name="usertype"), nullable=False)
     name = Column(String, nullable=False)
@@ -37,11 +51,19 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     others_referral_code = Column(String, nullable=True)
     clients = relationship("Client", back_populates="user")
     contracts = relationship("Contract", back_populates="user")
+    hashed_password = Column(String, nullable=False)
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+        if 'password' in kwargs:
+            self.hashed_password = hash_password(kwargs['password'])
+
+    def verify_password(self, password: str) -> bool:
+        return pwd_context.verify(password, self.hashed_password)
 
 
+# Логин норм, а пароль не работает нормально
+# Хеш в говне
 class Client(Base):
     __tablename__ = "clients"
     id = Column(Integer, primary_key=True, index=True)
@@ -71,6 +93,7 @@ async def create_db_and_tables():
         await conn.run_sync(Base.metadata.create_all)
 
 
+@asynccontextmanager
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
