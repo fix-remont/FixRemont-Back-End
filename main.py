@@ -4,13 +4,9 @@ from sqladmin.fields import FileField
 from src.database import schemas
 from src.database.crud import create_post, create_work
 from src.database.db import engine, get_db
-from users.db import create_db_and_tables, User, Client, Contract
-from src.database.models import Post, Work, session
-from users.schemas import UserCreate, UserRead, UserUpdate
-from users.users import auth_backend, fastapi_users
+from src.database.models import Post, Work
 from fastapi import FastAPI
 from src import routes
-from users.routes import router as user_router
 import base64
 from markupsafe import Markup
 from fastapi_storages import FileSystemStorage
@@ -20,55 +16,63 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 from sqlalchemy.future import select
-from users.db import User, get_async_session
+from src.database.models import User, Client, Contract, Post, Work
 from uuid import UUID
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await create_db_and_tables()
-    yield
+from fastapi import FastAPI
+from src import routes
+from src.database import user_routes
+from src.auth import auth_routes
+from src.database.db import get_db, engine
+from src.database.models import Base, User
+from src.database.schemas import UserCreate, UserResponse, Token
+from src.database.crud import get_user_by_username, create_user
+from src.auth.auth_routes import verify_password, create_access_token, decode_token
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError
+from fastapi import Request
+from sqlalchemy.future import select
 
 
 class CustomAuthBackend(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
-        form = await request.form()
-        username = form.get("username")
-        password = form.get("password")
-
-        async with get_async_session() as session:
-            result = await session.execute(select(User).where(User.email == username))
-            user = result.scalar_one_or_none()
-
-        if user and user.verify_password(password) and user.is_superuser:
-            request.session["user_id"] = str(user.id)
-            return True
-        return False
+        form_data = await request.form()
+        db = next(get_db())
+        user = get_user_by_username(db, form_data['username'])
+        if not user or not verify_password(form_data['password'], user.hashed_password):
+            return False
+        if not user.is_superuser:
+            return False
+        access_token = create_access_token(data={"sub": user.username})
+        request.session['access_token'] = access_token
+        return True
 
     async def logout(self, request: Request) -> bool:
-        request.session.pop("user_id", None)
+        request.session.pop("access_token", None)
         return True
 
     async def authenticate(self, request: Request) -> Any | None:
-        user_id = request.session.get("user_id")
-        if user_id:
-            try:
-                UUID(user_id, version=4)
-            except ValueError:
-                return None
-
-            async with get_async_session() as session:
-                result = await session.execute(select(User).where(User.id == user_id))
-                user = result.scalar_one_or_none()
+        token = request.session.get("access_token")
+        if token:
+            payload = decode_token(token)
+            if payload:
+                db = next(get_db())
+                user = get_user_by_username(db, payload.get("sub"))
                 if user:
                     return user
         return None
 
 
-app = FastAPI(lifespan=lifespan)
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
 app.add_middleware(
     SessionMiddleware,
-    secret_key="secret",
+    secret_key="09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -78,16 +82,26 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-admin = Admin(app=app, engine=engine, authentication_backend=CustomAuthBackend(secret_key="secret"))
+admin = Admin(app=app, engine=engine, authentication_backend=CustomAuthBackend(
+    secret_key="09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"))
+
+
+# Add views and routes as needed
 
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.name, User.surname, User.email, User.phone, User.user_type,
-                   User.user_referral_code, User.others_referral_code, User.clients, User.contracts]
-    column_searchable_list = [User.name, User.email]
+    column_list = [User.email]
+    column_searchable_list = [User.email]
     can_create = True
     can_edit = True
     can_delete = True
+
+    # async def on_model_change(self, data, model, is_created, request):
+    #     # Remove the UUID field from the data dictionary to prevent modification
+    #     data.pop('id', None)
+    #     # Update the model with the remaining data
+    #     for key, value in data.items():
+    #         setattr(model, key, value)
 
 
 class ClientAdmin(ModelView, model=Client):
@@ -202,28 +216,44 @@ admin.add_view(ContractAdmin)
 admin.add_view(PostAdmin)
 admin.add_view(WorkAdmin)
 
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
-)
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_reset_password_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_verify_router(UserRead),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_users_router(UserRead, UserUpdate),
-    prefix="/users",
-    tags=["users"],
-)
+app.include_router(user_routes.router)
 app.include_router(routes.meta())
-app.include_router(user_router, prefix="/user", tags=["user"])
+
+
+# main.py
+
+
+# Register Route
+@app.post("/register", response_model=UserResponse)
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = get_user_by_username(db, user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    return create_user(db, user)
+
+
+# Login Route
+@app.post("/login", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = get_user_by_username(db, form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+# Protected Route
+@app.get("/protected")
+def protected_route(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    payload = decode_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = get_user_by_username(db, payload.get("sub"))
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": f"Hello {user.username}, this is a protected route"}
+
+# Logout Route (JWT is stateless, so we don’t need an actual "logout" functionality)

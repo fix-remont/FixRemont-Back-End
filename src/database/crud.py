@@ -5,6 +5,10 @@ import base64
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.schemas import ProjectType, PostType
+from sqlalchemy.orm import Session
+from src.database.models import User
+from src.database.schemas import UserCreate
+from src.auth.auth_routes import get_password_hash
 
 
 async def get_work(work_id: int, db: AsyncSession):
@@ -116,4 +120,24 @@ async def create_post(post: schemas.PostCreate, db: AsyncSession):
     await db.refresh(post_data)
     return post_data
 
+
 # TODO: feedbacks
+
+# crud.py
+
+
+def get_user_by_username(db: Session, username: str):
+    return db.query(User).filter(User.username == username).first()
+
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(User).filter(User.email == email).first()
+
+
+def create_user(db: Session, user: UserCreate):
+    hashed_password = get_password_hash(user.password)
+    db_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user

@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import Session
-from users.db import User, Client, Contract, get_async_session
-from users.schemas import ClientCreate, ClientUpdate, ContractCreate, ContractUpdate, ReferralCodeInput
-from users.users import current_active_user
+
+from src.auth.dependencies import current_active_user
+from src.database.models import User, Client, Contract
+from src.database.schemas import ClientCreate, ClientUpdate, ContractCreate, ContractUpdate, ReferralCodeInput
+from src.database.db import get_db
 
 router = APIRouter()
 
 
 @router.get("/clients")
-async def get_clients(user: User = Depends(current_active_user), session: AsyncSession = Depends(get_async_session)):
+async def get_clients(user: User = Depends(current_active_user), session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(Client).where(Client.user_id == user.id))
     clients = result.scalars().all()
     return clients
@@ -18,7 +19,7 @@ async def get_clients(user: User = Depends(current_active_user), session: AsyncS
 
 @router.post("/clients")
 async def create_client(client: ClientCreate, user: User = Depends(current_active_user),
-                        session: AsyncSession = Depends(get_async_session)):
+                        session: AsyncSession = Depends(get_db)):
     new_client = Client(**client.dict(), user_id=user.id)
     session.add(new_client)
     await session.commit()
@@ -28,7 +29,7 @@ async def create_client(client: ClientCreate, user: User = Depends(current_activ
 
 @router.put("/clients/{client_id}")
 async def update_client(client_id: int, client: ClientUpdate, user: User = Depends(current_active_user),
-                        session: AsyncSession = Depends(get_async_session)):
+                        session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(Client).where(Client.id == client_id, Client.user_id == user.id))
     existing_client = result.scalar_one_or_none()
     if not existing_client:
@@ -41,7 +42,7 @@ async def update_client(client_id: int, client: ClientUpdate, user: User = Depen
 
 
 @router.get("/contracts")
-async def get_contracts(user: User = Depends(current_active_user), session: AsyncSession = Depends(get_async_session)):
+async def get_contracts(user: User = Depends(current_active_user), session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(Contract).where(Contract.user_id == user.id))
     contracts = result.scalars().all()
     return contracts
@@ -49,7 +50,7 @@ async def get_contracts(user: User = Depends(current_active_user), session: Asyn
 
 @router.post("/contracts")
 async def create_contract(contract: ContractCreate, user: User = Depends(current_active_user),
-                          session: AsyncSession = Depends(get_async_session)):
+                          session: AsyncSession = Depends(get_db)):
     new_contract = Contract(**contract.dict(), user_id=user.id)
     session.add(new_contract)
     await session.commit()
@@ -59,7 +60,7 @@ async def create_contract(contract: ContractCreate, user: User = Depends(current
 
 @router.put("/contracts/{contract_id}")
 async def update_contract(contract_id: int, contract: ContractUpdate, user: User = Depends(current_active_user),
-                          session: AsyncSession = Depends(get_async_session)):
+                          session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(Contract).where(Contract.id == contract_id, Contract.user_id == user.id))
     existing_contract = result.scalar_one_or_none()
     if not existing_contract:
@@ -82,7 +83,7 @@ async def wallet_page(user: User = Depends(current_active_user)):
 
 
 @router.get("/profile")
-async def profile_page(user: User = Depends(current_active_user), session: AsyncSession = Depends(get_async_session)):
+async def profile_page(user: User = Depends(current_active_user), session: AsyncSession = Depends(get_db)):
     clients = await session.execute(select(Client).where(Client.user_id == user.id))
     contracts = await session.execute(select(Contract).where(Contract.user_id == user.id))
     return {
@@ -112,10 +113,9 @@ async def get_referral_code(user: User = Depends(current_active_user)):
     return {"referral_code": user.user_referral_code}
 
 
-# TODO: Fix POST bug
 @router.post("/insert_referral_code")
 async def insert_referral_code(referral_code_input: ReferralCodeInput, user: User = Depends(current_active_user),
-                               session: AsyncSession = Depends(get_async_session)):
+                               session: AsyncSession = Depends(get_db)):
     referred_user = await session.execute(
         select(User).where(User.user_referral_code == referral_code_input.user_referral_code))
     referred_user = referred_user.scalar_one_or_none()

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
-from users.db import User
-from users.users import current_active_user
+from src.database.models import User
 
 router = APIRouter()
 
@@ -30,9 +29,9 @@ async def gratitude():
     return {"message": "Gratitude"}
 
 
-@router.get("/test-authenticated-route")
-async def authenticated_route(user: User = Depends(current_active_user)):
-    return {"message": f"Hello {user.email}!"}
+# @router.get("/test-authenticated-route")
+# async def authenticated_route(user: User = Depends(current_active_user)):
+#     return {"message": f"Hello {user.email}!"}
 
 # @router.get("/{path:path}")
 # async def page_not_found(path: str):
