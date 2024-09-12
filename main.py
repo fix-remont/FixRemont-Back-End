@@ -16,12 +16,13 @@ from src.database.db import get_db, engine, Base
 from src.database.models import User
 from src.database.schemas import UserCreate, UserResponse, Token
 from src.database.crud import create_user
-from src.auth.auth_routes import verify_password, create_access_token, decode_token
+from src.auth.auth_routes import verify_password, create_access_token, decode_token, get_password_hash
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Request
 from src.database.crud import get_user_by_email
+import logging
 
 
 class CustomAuthBackend(AuthenticationBackend):
@@ -76,22 +77,46 @@ admin = Admin(app=app, engine=engine, authentication_backend=CustomAuthBackend(
     secret_key="09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"))
 
 
-# Add views and routes as needed
-
-
 class UserAdmin(ModelView, model=User):
-    column_list = [User.email]
-    column_searchable_list = [User.email]
+    column_list = [User.email, User.name, User.surname, User.phone, User.user_type, User.notification_status]
+    column_searchable_list = [User.email, User.name, User.surname, User.user_type]
+    column_filters = [User.user_type]
+    column_sortable_list = [User.email, User.name, User.surname, User.user_type]
+    column_details_exclude_list = [User.hashed_password, User.id, User.is_active]
+    column_labels = dict(name="Имя", email="Email", surname="Фамилия", phone="Номер телефона", user_type="Роль",
+                         notification_status="Статус уведомлений", user_referral_code="Реферальный код пользователя",
+                         others_referral_code="Сторонний реферальный код", is_active="Активен",
+                         is_superuser="Является админом", clients="Клиенты", contracts="Контракты", hashed_password="Пароль")
+    form_edit_rules = ['name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code', 'others_referral_code', 'is_superuser', 'clients', 'contracts']
+    form_create_rules = ['email', 'name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code', 'others_referral_code', 'is_superuser', 'clients', 'contracts', 'hashed_password']
     can_create = True
     can_edit = True
     can_delete = True
+    form_widget_args = {
+        "name": {
+            'placeholder="Пользователь пока не ввел имя"': True,
+        },
+        "surname": {
+            'placeholder="Пользователь пока не ввел фамилию"': True,
+        },
+        "phone":{
+            'pattern': "[0-9]", # TODO: add pattern for phone number
+            'placeholder="Пользователь пока не ввел номер телефона"': True,
+        },
+        "others_referral_code": {
+            'placeholder="Пользователь пока не ввел сторонний реферальный код"': True,
+        },
+        "email": {
+            'placeholder="Введите email пользователя"': True,
+        },
+        "hashed_password": {
+            'placeholder="Введите пароль пользователя"': True,
+        },
+    }
 
-    async def on_model_change(self, data, model, is_created, request):
-        # Remove the UUID field from the data dictionary to prevent modification
-        data.pop('id', None)
-        # Update the model with the remaining data
-        for key, value in data.items():
-            setattr(model, key, value)
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            model.hashed_password = get_password_hash(model.hashed_password)
 
 
 class ClientAdmin(ModelView, model=Client):
