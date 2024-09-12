@@ -1,7 +1,6 @@
 from src.database.crud import get_all_posts, get_post, create_post
 from src.database.schemas import PostType
 from typing import Optional, List
-
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import db as database, schemas

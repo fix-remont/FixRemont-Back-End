@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from src.database.models import User
 
 router = APIRouter()
 

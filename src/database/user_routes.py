@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-
 from src.auth.dependencies import current_active_user
 from src.database.models import User, Client, Contract
 from src.database.schemas import ClientCreate, ClientUpdate, ContractCreate, ContractUpdate, ReferralCodeInput

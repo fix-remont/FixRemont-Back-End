@@ -1,32 +1,8 @@
-from enum import Enum
-
 from pydantic import BaseModel, NonNegativeFloat, PositiveInt
 from typing import List
-import uuid
-from pydantic import BaseModel, EmailStr
+from src.database.enums import ProjectType, PostType, NotificationType, UserType
 from typing import Optional
-import enum
 from pydantic import BaseModel
-from typing import Optional
-import uuid
-from pydantic import BaseModel
-
-
-class ProjectType(str, Enum):
-    FLAT = "flat"
-    HOUSE = "house"
-
-
-class PostType(str, Enum):
-    FLAT_RENOVATION = "flat_renovation"
-    HOUSE_BUILDING = "house_building"
-    NEWS = "news"
-
-
-class UserType(str, Enum):
-    REALTOR = "realtor"
-    DEVELOPER = "developer"
-    INDIVIDUAL = "individual"
 
 
 class WorkBase(BaseModel):
@@ -69,28 +45,20 @@ class Post(PostBase):
     pass
 
 
-# src/database/schemas.py
-from pydantic import BaseModel, EmailStr
-from typing import Optional
-from enum import Enum
-
-# schemas.py
-from pydantic import BaseModel
-
-
 class UserCreate(BaseModel):
-    username: str
     email: str
     password: str
 
 
 class UserResponse(BaseModel):
     id: int
-    username: str
     email: str
 
     class Config:
         orm_mode = True
+
+
+# class UserUp
 
 
 class Token(BaseModel):
@@ -132,3 +100,158 @@ class ContractUpdate(BaseModel):
 
 class ReferralCodeInput(BaseModel):
     user_referral_code: str
+
+# from pydantic import BaseModel
+# from typing import List, Optional
+# from src.database.enums import PostType
+# from src.database.models import Client, Contract, ProjectType, PostType, UserType
+#
+#
+# class PostBase(BaseModel):
+#     title: str
+#     post_type: PostType
+#     content: List[str]
+#     images: List[str]
+#
+#     class Config:
+#         orm_mode = True
+#         arbitrary_types_allowed = True
+#
+#
+# class PostCreate(PostBase):
+#     pass
+#
+#
+# class Post(PostBase):
+#     id: Optional[int] = None
+#
+#
+# from pydantic import BaseModel, EmailStr
+# from typing import List, Optional
+# from src.database.enums import UserType
+#
+#
+# class UserCreate(BaseModel):
+#     email: EmailStr
+#     password: str
+#
+#
+# class UserResponse(BaseModel):
+#     id: int
+#     email: EmailStr
+#     name: str
+#     surname: str
+#     user_type: UserType
+#     user_referral_code: str
+#     others_referral_code: Optional[str]
+#     clients: List["Client"]
+#     contracts: List["Contract"]
+#
+#     class Config:
+#         orm_mode = True
+#         arbitrary_types_allowed = True
+#
+#
+# from pydantic import BaseModel
+# from typing import Optional
+#
+#
+# class ClientBase(BaseModel):
+#     object: str
+#     tariff: str
+#     location: str
+#     rate: int
+#     current_stage: str
+#
+#     class Config:
+#         orm_mode = True
+#         arbitrary_types_allowed = True
+#
+#
+# class ClientCreate(ClientBase):
+#     pass
+#
+#
+# class ClientUpdate(ClientBase):
+#     object: Optional[str] = None
+#     tariff: Optional[str] = None
+#     location: Optional[str] = None
+#     rate: Optional[int] = None
+#     current_stage: Optional[str] = None
+#
+#
+# from pydantic import BaseModel
+# from typing import Optional
+#
+#
+# class ContractBase(BaseModel):
+#     object: str
+#     tariff: str
+#     location: str
+#     total_cost: int
+#     current_stage: str
+#
+#     class Config:
+#         orm_mode = True
+#         arbitrary_types_allowed = True
+#
+#
+# class ContractCreate(ContractBase):
+#     pass
+#
+#
+# class ContractUpdate(ContractBase):
+#     object: Optional[str] = None
+#     tariff: Optional[str] = None
+#     location: Optional[str] = None
+#     total_cost: Optional[int] = None
+#     current_stage: Optional[str] = None
+#
+#
+# from pydantic import BaseModel
+#
+#
+# class Token(BaseModel):
+#     access_token: str
+#     token_type: str
+#
+#
+# from pydantic import BaseModel
+#
+#
+# class ReferralCodeInput(BaseModel):
+#     user_referral_code: str
+#
+#
+# class Work(BaseModel):
+#     title: str
+#     project_type: ProjectType
+#     deadline: int
+#     cost: int
+#     square: int
+#     task: str
+#     description: List[str]
+#     images: List[str]
+#
+#     class Config:
+#         orm_mode = True
+#         arbitrary_types_allowed = True
+#
+#
+# class WorkCreate(Work):
+#     pass
+#
+#
+# class WorkUpdate(Work):
+#     title: str
+#     project_type: ProjectType
+#     deadline: int
+#     cost: int
+#     square: int
+#     task: str
+#     description: List[str]
+#     images: List[str]
+#
+#     class Config:
+#         orm_mode = True
+#         arbitrary_types_allowed = True

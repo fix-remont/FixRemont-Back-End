@@ -1,16 +1,16 @@
 import random
 import string
-
+import jwt
+from fastapi import HTTPException
 
 def generate_unique_id():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
 
 
 # src/database/utils.py
-import jwt
-from fastapi import HTTPException
 
-SECRET_KEY = "your_secret_key"  # Replace with your actual secret key
+
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"  # Replace with your actual secret key
 ALGORITHM = "HS256"  # Replace with your actual algorithm
 
 

@@ -1,12 +1,7 @@
-from contextlib import asynccontextmanager
 from typing import Any
 from sqladmin.fields import FileField
 from src.database import schemas
 from src.database.crud import create_post, create_work
-from src.database.db import engine, get_db
-from src.database.models import Post, Work
-from fastapi import FastAPI
-from src import routes
 import base64
 from markupsafe import Markup
 from fastapi_storages import FileSystemStorage
@@ -14,37 +9,32 @@ from sqladmin import Admin, ModelView
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from sqladmin.authentication import AuthenticationBackend
-from starlette.requests import Request
-from sqlalchemy.future import select
 from src.database.models import User, Client, Contract, Post, Work
-from uuid import UUID
-from fastapi import FastAPI
 from src import routes
 from src.database import user_routes
-from src.auth import auth_routes
-from src.database.db import get_db, engine
-from src.database.models import Base, User
+from src.database.db import get_db, engine, Base
+from src.database.models import User
 from src.database.schemas import UserCreate, UserResponse, Token
-from src.database.crud import get_user_by_username, create_user
+from src.database.crud import create_user
 from src.auth.auth_routes import verify_password, create_access_token, decode_token
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError
 from fastapi import Request
-from sqlalchemy.future import select
+from src.database.crud import get_user_by_email
 
 
 class CustomAuthBackend(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
         form_data = await request.form()
         db = next(get_db())
-        user = get_user_by_username(db, form_data['username'])
+        print(form_data['username'])
+        user = get_user_by_email(db, form_data['username'])
         if not user or not verify_password(form_data['password'], user.hashed_password):
             return False
         if not user.is_superuser:
             return False
-        access_token = create_access_token(data={"sub": user.username})
+        access_token = create_access_token(data={"sub": user.email})
         request.session['access_token'] = access_token
         return True
 
@@ -58,7 +48,7 @@ class CustomAuthBackend(AuthenticationBackend):
             payload = decode_token(token)
             if payload:
                 db = next(get_db())
-                user = get_user_by_username(db, payload.get("sub"))
+                user = get_user_by_email(db, payload.get("sub"))
                 if user:
                     return user
         return None
@@ -96,12 +86,12 @@ class UserAdmin(ModelView, model=User):
     can_edit = True
     can_delete = True
 
-    # async def on_model_change(self, data, model, is_created, request):
-    #     # Remove the UUID field from the data dictionary to prevent modification
-    #     data.pop('id', None)
-    #     # Update the model with the remaining data
-    #     for key, value in data.items():
-    #         setattr(model, key, value)
+    async def on_model_change(self, data, model, is_created, request):
+        # Remove the UUID field from the data dictionary to prevent modification
+        data.pop('id', None)
+        # Update the model with the remaining data
+        for key, value in data.items():
+            setattr(model, key, value)
 
 
 class ClientAdmin(ModelView, model=Client):
@@ -153,12 +143,12 @@ class PostAdmin(ModelView, model=Post):
 
             post_data = schemas.PostCreate(
                 title=data['title'],
-                post_type=schemas.PostType(data['post_type'].lower()),
+                post_type=schemas.PostType(data['post_type']),
                 content=data['content'],
                 images=images
             )
 
-            async for db_session in get_db():
+            for db_session in get_db():
                 await create_post(post_data, db_session)
 
 
@@ -226,20 +216,20 @@ app.include_router(routes.meta())
 # Register Route
 @app.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = get_user_by_username(db, user.username)
+    db_user = get_user_by_email(db, user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(status_code=400, detail="email already registered")
     return create_user(db, user)
 
 
 # Login Route
 @app.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = get_user_by_username(db, form_data.username)
+    user = get_user_by_email(db, form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
 
-    access_token = create_access_token(data={"sub": user.username})
+    access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -250,10 +240,10 @@ def protected_route(token: str = Depends(oauth2_scheme), db: Session = Depends(g
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = get_user_by_username(db, payload.get("sub"))
+    user = get_user_by_email(db, payload.get("sub"))
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return {"message": f"Hello {user.username}, this is a protected route"}
+    return {"message": f"Hello {user.email}, this is a protected route"}
 
 # Logout Route (JWT is stateless, so we don’t need an actual "logout" functionality)
