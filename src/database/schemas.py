@@ -1,8 +1,10 @@
 from pydantic import BaseModel, NonNegativeFloat, PositiveInt
 from typing import List
-from src.database.enums import ProjectType, PostType, NotificationType, UserType
+from src.database.enums import ProjectType, PostType, NotificationType, UserType, MessageType
 from typing import Optional
 from pydantic import BaseModel
+
+from src.database.models import LargeBinary
 
 
 class WorkBase(BaseModel):
@@ -100,6 +102,22 @@ class ContractUpdate(BaseModel):
 
 class ReferralCodeInput(BaseModel):
     user_referral_code: str
+
+
+class Notification(BaseModel):
+    message_type: MessageType
+    content: str
+    attachment: Optional[bytes]
+
+    class Config:
+        orm_mode = True
+        arbitrary_types_allowed = True
+
+class NotificationCreate(Notification):
+    pass
+
+class NotificationUpdate(Notification):
+    pass
 
 # from pydantic import BaseModel
 # from typing import List, Optional

@@ -1,7 +1,7 @@
 from typing import Any
 from sqladmin.fields import FileField
 from src.database import schemas
-from src.database.crud import create_post, create_work
+from src.database.crud import create_post, create_work, create_notification
 import base64
 from markupsafe import Markup
 from fastapi_storages import FileSystemStorage
@@ -9,7 +9,7 @@ from sqladmin import Admin, ModelView
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from sqladmin.authentication import AuthenticationBackend
-from src.database.models import User, Client, Contract, Post, Work
+from src.database.models import User, Client, Contract, Post, Work, Notification
 from src import routes
 from src.database import user_routes
 from src.database.db import get_db, engine, Base
@@ -18,7 +18,7 @@ from src.database.schemas import UserCreate, UserResponse, Token
 from src.database.crud import create_user
 from src.auth.auth_routes import verify_password, create_access_token, decode_token, get_password_hash
 from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Request
 from src.database.crud import get_user_by_email
@@ -86,9 +86,12 @@ class UserAdmin(ModelView, model=User):
     column_labels = dict(name="Имя", email="Email", surname="Фамилия", phone="Номер телефона", user_type="Роль",
                          notification_status="Статус уведомлений", user_referral_code="Реферальный код пользователя",
                          others_referral_code="Сторонний реферальный код", is_active="Активен",
-                         is_superuser="Является админом", clients="Клиенты", contracts="Контракты", hashed_password="Пароль")
-    form_edit_rules = ['name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code', 'others_referral_code', 'is_superuser', 'clients', 'contracts']
-    form_create_rules = ['email', 'name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code', 'others_referral_code', 'is_superuser', 'clients', 'contracts', 'hashed_password']
+                         is_superuser="Является админом", clients="Клиенты", contracts="Контракты",
+                         hashed_password="Пароль")
+    form_edit_rules = ['name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code',
+                       'others_referral_code', 'is_superuser', 'clients', 'contracts']
+    form_create_rules = ['email', 'name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code',
+                         'others_referral_code', 'is_superuser', 'clients', 'contracts', 'hashed_password']
     can_create = True
     can_edit = True
     can_delete = True
@@ -99,8 +102,8 @@ class UserAdmin(ModelView, model=User):
         "surname": {
             'placeholder="Пользователь пока не ввел фамилию"': True,
         },
-        "phone":{
-            'pattern': "[0-9]", # TODO: add pattern for phone number
+        "phone": {
+            'pattern': "[0-9]",  # TODO: add pattern for phone number
             'placeholder="Пользователь пока не ввел номер телефона"': True,
         },
         "others_referral_code": {
@@ -126,6 +129,12 @@ class ClientAdmin(ModelView, model=Client):
     can_create = True
     can_edit = True
     can_delete = True
+
+    form_ajax_refs = {
+        'user': {
+            'fields': ['email'],
+        }
+    }
 
 
 class ContractAdmin(ModelView, model=Contract):
@@ -225,11 +234,44 @@ class WorkAdmin(ModelView, model=Work):
                 await create_work(work_data, db_session)
 
 
+class NotificationAdmin(ModelView, model=Notification):
+    column_list = [Notification.id, Notification.message_type, Notification.content, Notification.user_id,
+                   Notification.attachment]
+    column_searchable_list = [Notification.content]
+    can_create = True
+    can_edit = True
+    can_delete = True
+
+    form_overrides = {
+        'attachment': FileField
+    }
+
+    column_formatters = {
+        'attachment': lambda m, p: Markup(
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Download PDF</a>'
+        ) if m.attachment else 'ERROR'
+    }
+
+    async def on_model_change(self, data, model, is_created, request):
+        if 'attachment' in data:
+            file_data = await data['attachment'].read()  # Ensure to await the read operation
+            notification_data = schemas.NotificationCreate(
+                user_id=data.get('user_id'),
+                message_type=data['message_type'],
+                content=data['content'],
+                attachment=file_data,
+            )
+
+            for db_session in get_db():
+                await create_notification(notification_data, db_session)
+
+
 admin.add_view(UserAdmin)
 admin.add_view(ClientAdmin)
 admin.add_view(ContractAdmin)
 admin.add_view(PostAdmin)
 admin.add_view(WorkAdmin)
+admin.add_view(NotificationAdmin)
 
 app.include_router(user_routes.router)
 app.include_router(routes.meta())

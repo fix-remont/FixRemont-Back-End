@@ -108,6 +108,18 @@ async def create_work(work: schemas.WorkCreate, db: AsyncSession):
     return work_data
 
 
+async def create_notification(notification: schemas.NotificationCreate, db: AsyncSession):
+    notification_data = models.Notification(
+        message_type=notification.message_type,
+        content=notification.content,
+        attachment=notification.attachment
+    )
+    db.add(notification_data)
+    await db.commit()
+    await db.refresh(notification_data)
+    return notification_data
+
+
 async def create_post(post: schemas.PostCreate, db: AsyncSession):
     post_data = models.Post(
         title=post.title,
