@@ -134,11 +134,6 @@ async def create_post(post: schemas.PostCreate, db: AsyncSession):
     return post_data
 
 
-# TODO: feedbacks
-
-# crud.py
-
-
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
@@ -150,3 +145,31 @@ def create_user(user: UserCreate, db: Session):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+
+
+# src/database/crud.py
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from src.database import models, schemas
+
+async def create_flat(db: AsyncSession, flat: schemas.FlatCreate):
+    db_flat = models.Flat(**flat.dict())
+    db.add(db_flat)
+    await db.commit()
+    await db.refresh(db_flat)
+    return db_flat
+
+async def get_tariffs(db: AsyncSession):
+    result = await db.execute(select(models.Tariff))
+    return result.scalars().all()
+
+async def get_styles(db: AsyncSession):
+    result = await db.execute(select(models.Style))
+    return result.scalars().all()
+
+async def get_additional_options(db: AsyncSession):
+    result = await db.execute(select(models.AdditionalOption))
+    return result.scalars().all()

@@ -102,3 +102,51 @@ class Notification(Base):
 
 engine = create_engine("postgresql+psycopg2://postgres:fixremontadmin@localhost:5432/postgres")
 Base.metadata.create_all(engine)
+
+
+
+
+# src/database/models.py
+
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
+from src.database.db import Base
+
+class Flat(Base):
+    __tablename__ = 'flats'
+    id = Column(Integer, primary_key=True, index=True)
+    square = Column(Integer, nullable=False)
+    address = Column(String, nullable=False)
+    number_of_rooms = Column(Integer, nullable=False)
+    number_of_doors = Column(Integer, nullable=False)
+    number_of_wc = Column(Integer, nullable=False)
+    demolition = Column(Boolean, default=False)
+    wall_build = Column(Boolean, default=False)
+    liquid_floor = Column(Boolean, default=False)
+    ceiling_stretching = Column(Boolean, default=False)
+    tariff_id = Column(Integer, ForeignKey('tariffs.id'))
+    style_id = Column(Integer, ForeignKey('styles.id'))
+    additional_options = relationship('AdditionalOption', secondary='flat_additional_options')
+
+class Tariff(Base):
+    __tablename__ = 'tariffs'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+
+class Style(Base):
+    __tablename__ = 'styles'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+
+class AdditionalOption(Base):
+    __tablename__ = 'additional_options'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+
+class FlatAdditionalOption(Base):
+    __tablename__ = 'flat_additional_options'
+    flat_id = Column(Integer, ForeignKey('flats.id'), primary_key=True)
+    additional_option_id = Column(Integer, ForeignKey('additional_options.id'), primary_key=True)

@@ -275,3 +275,56 @@ class NotificationUpdate(Notification):
 #     class Config:
 #         orm_mode = True
 #         arbitrary_types_allowed = True
+
+
+
+
+
+# src/database/schemas.py
+
+from pydantic import BaseModel
+from typing import List, Optional
+
+class FlatCreate(BaseModel):
+    square: int
+    address: str
+    number_of_rooms: int
+    number_of_doors: int
+    number_of_wc: int
+    demolition: bool = False
+    wall_build: bool = False
+    liquid_floor: bool = False
+    ceiling_stretching: bool = False
+
+class FlatResponse(FlatCreate):
+    id: int
+    tariff_id: Optional[int]
+    style_id: Optional[int]
+    additional_options: List[int]
+
+    class Config:
+        orm_mode = True
+
+class Tariff(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+class Style(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+class AdditionalOption(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+
+    class Config:
+        orm_mode = True
