@@ -143,7 +143,7 @@ def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
 
-def create_user(db: Session, user: UserCreate):
+def create_user(user: UserCreate, db: Session):
     hashed_password = get_password_hash(user.password)
     db_user = User(email=user.email, hashed_password=hashed_password)
     db.add(db_user)

@@ -1,3 +1,4 @@
+from asyncio import Future
 from typing import Any
 from sqladmin.fields import FileField
 from src.database import schemas
@@ -10,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from sqladmin.authentication import AuthenticationBackend
 
-from src.database.enums import NotificationType, MessageType, PostType, UserType
+from src.database.enums import NotificationType, MessageType, PostType, UserType, ProjectType
 from src.database.models import User, Client, Contract, Post, Work, Notification
 from src import routes
 from src.database import user_routes
@@ -26,6 +27,7 @@ from fastapi import Request
 from src.database.crud import get_user_by_email
 import logging
 from wtforms import SelectField
+
 
 class CustomAuthBackend(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
@@ -76,11 +78,15 @@ app.add_middleware(
 )
 
 admin = Admin(app=app, engine=engine, authentication_backend=CustomAuthBackend(
-    secret_key="09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"))
+    secret_key="09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"), title="Панель управления")
 
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.email, User.name, User.surname, User.phone, User.user_type, User.notification_status, User.notifications]
+    name = "Пользователь"
+    name_plural = "Пользователи"
+    icon = "fa-solid fa-user-tie"
+    column_list = [User.email, User.name, User.surname, User.phone, User.user_type, User.notification_status,
+                   User.notifications]
     column_searchable_list = [User.email, User.name, User.surname, User.user_type]
     column_filters = [User.user_type]
     column_sortable_list = [User.email, User.name, User.surname, User.user_type]
@@ -99,7 +105,8 @@ class UserAdmin(ModelView, model=User):
     can_delete = True
 
     form_overrides = {
-        'user_type': SelectField
+        'user_type': SelectField,
+        'notification_status': SelectField,
     }
 
     form_args = {
@@ -109,7 +116,19 @@ class UserAdmin(ModelView, model=User):
                 (UserType.DEVELOPER, 'Заказчик'),
                 (UserType.INDIVIDUAL, 'Физическое лицо')
             ]
+        },
+        'notification_status': {
+            'choices': [
+                (NotificationType.NO_MESSAGES, 'Сообщений нет'),
+                (NotificationType.NEW_MESSAGE, 'Новое сообщение'),
+                (NotificationType.FILL_DOCUMENT, 'Заполнить документы')
+            ]
         }
+    }
+
+    column_formatters = {
+        'user_type': lambda m, p: m.user_type,
+        'notification_status': lambda m, p: m.notification_status,
     }
 
     form_widget_args = {
@@ -134,26 +153,28 @@ class UserAdmin(ModelView, model=User):
         },
     }
 
-def on_model_change(self, data, model, is_created, request):
-    if is_created:
-        if not data.get('hashed_password'):
-            raise ValueError("Password cannot be None")
-        model.hashed_password = get_password_hash(data['hashed_password'])
+    async def on_model_change(self, data, model, is_created, request):
+        if is_created:
+            if not data.get('hashed_password'):
+                raise ValueError("Password cannot be None")
+            model.hashed_password = get_password_hash(data['hashed_password'])
+            model.user_type = UserType.REALTOR if data['user_type'] == 'Риэлтор' else UserType.DEVELOPER if data[
+                                                                                                                'user_type'] == 'Заказчик' else UserType.INDIVIDUAL
+        return Future().set_result(None)
 
-    # Convert the user_type to its value
-    user_type = data.get('user_type')
-    if user_type:
-        model.user_type = user_type.value if isinstance(user_type, UserType) else user_type
-    # TODO: Починить енам, он сломан
 
 class ClientAdmin(ModelView, model=Client):
-    column_list = [Client.id, Client.object, Client.tariff, Client.location, Client.rate, Client.current_stage,
+    name = "Клиент"
+    name_plural = "Клиенты"
+    icon = "fa-solid fa-users-gear"
+    column_list = [Client.object, Client.tariff, Client.location, Client.rate, Client.current_stage,
                    Client.user_id]
     column_searchable_list = [Client.object]
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(object="Объект", tariff="Тариф", location="Местоположение", rate="Оценка", current_stage="Текущий этап", user_id="ID пользователя")
+    column_labels = dict(object="Объект", tariff="Тариф", location="Местоположение", rate="Оценка",
+                         current_stage="Текущий этап", user_id="ID пользователя")
 
     form_ajax_refs = {
         'user': {
@@ -164,16 +185,24 @@ class ClientAdmin(ModelView, model=Client):
 
 
 class ContractAdmin(ModelView, model=Contract):
+    name = "Контракт"
+    name_plural = "Контракты"
+    icon = "fa-solid fa-file-signature"
     column_list = [Contract.id, Contract.object, Contract.tariff, Contract.location, Contract.total_cost,
                    Contract.current_stage, Contract.user_id]
     column_searchable_list = [Contract.object]
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(object="Объект", tariff="Тариф", location="Местоположение", total_cost="Общая стоимость", current_stage="Текущий этап", user_id="ID пользователя")
+    column_labels = dict(object="Объект", tariff="Тариф", location="Местоположение", total_cost="Общая стоимость",
+                         current_stage="Текущий этап", user_id="ID пользователя")
+
 
 class PostAdmin(ModelView, model=Post):
-    column_list = [Post.id, Post.title, Post.post_type, Post.content, Post.images]
+    name = "Пост"
+    name_plural = "Посты"
+    icon = "fa-solid fa-newspaper"
+    column_list = [Post.title, Post.post_type, Post.content, Post.images]
     column_searchable_list = [Post.title]
     column_filters = [Post.post_type]
     column_sortable_list = [Post.id, Post.title]
@@ -183,17 +212,27 @@ class PostAdmin(ModelView, model=Post):
     column_labels = dict(title="Заголовок", post_type="Тип поста", content="Содержание", images="Изображения")
 
     form_overrides = {
-        'attachment': FileField,
+        'images': FileField,
         'post_type': SelectField
     }
 
     form_args = {
         'post_type': {
             'choices': [
-                (schemas.PostType.NEWS, 'Новость'),
-                (schemas.PostType.BLOG, 'Блог'),
+                (PostType.NEWS, 'Новость'),
+                (PostType.BLOG, 'Блог'),
             ]
-        }
+        },
+    }
+
+    column_formatters_detail = {
+        'images': lambda m, p: Markup(
+            ''.join(
+                f'<img src="data:image/png;base64,{image}" width="100" />'
+                for image in m.images
+            )
+        ) if m.images else 'ERROR',
+        'post_type': lambda m, p: m.post_type
     }
 
     column_formatters = {
@@ -202,9 +241,9 @@ class PostAdmin(ModelView, model=Post):
                 f'<img src="data:image/png;base64,{image}" width="100" />'
                 for image in m.images
             )
-        ) if m.images else 'ERROR'
+        ) if m.images else 'ERROR',
+        'post_type': lambda m, p: m.post_type
     }
-
 
     async def on_model_change(self, data, model, is_created, request):
         if 'images' in data:
@@ -224,11 +263,12 @@ class PostAdmin(ModelView, model=Post):
                 await create_post(post_data, db_session)
 
 
-storage = FileSystemStorage(path="/tmp")
-
-
 class WorkAdmin(ModelView, model=Work):
-    column_list = [Work.id, Work.title, Work.project_type, Work.deadline, Work.cost, Work.square, Work.task,
+    name = "Портфолио"
+    name_plural = "Портфолио"
+    icon = "fa-solid fa-building-circle-check"
+
+    column_list = [Work.title, Work.project_type, Work.deadline, Work.cost, Work.square, Work.task,
                    Work.description, Work.images]
     column_searchable_list = [Work.title]
     column_filters = [Work.project_type]
@@ -236,10 +276,21 @@ class WorkAdmin(ModelView, model=Work):
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(title="Заголовок", project_type="Тип проекта", deadline="Дедлайн", cost="Стоимость", square="Площадь", task="Задача", description="Описание", images="Изображения")
+    column_labels = dict(title="Заголовок", project_type="Тип проекта", deadline="Дедлайн", cost="Стоимость",
+                         square="Площадь", task="Задача", description="Описание", images="Изображения")
 
     form_overrides = {
-        'images': FileField
+        'images': FileField,
+        'project_type': SelectField
+    }
+
+    form_args = {
+        'project_type': {
+            'choices': [
+                (ProjectType.FLAT, 'Квартира'),
+                (ProjectType.HOUSE, 'Дом'),
+            ]
+        },
     }
 
     column_formatters = {
@@ -248,7 +299,18 @@ class WorkAdmin(ModelView, model=Work):
                 f'<img src="data:image/png;base64,{image}" width="100" />'
                 for image in m.images
             )
-        ) if m.images else 'ERROR'
+        ) if m.images else 'ERROR',
+        'project_type': lambda m, p: m.project_type
+    }
+
+    column_formatters_detail = {
+        'images': lambda m, p: Markup(
+            ''.join(
+                f'<img src="data:image/png;base64,{image}" width="100" />'
+                for image in m.images
+            )
+        ) if m.images else 'ERROR',
+        'project_type': lambda m, p: m.project_type
     }
 
     async def on_model_change(self, data, model, is_created, request):
@@ -260,7 +322,7 @@ class WorkAdmin(ModelView, model=Work):
 
             work_data = schemas.WorkCreate(
                 title=data['title'],
-                project_type=schemas.ProjectType(data['project_type'].lower()),
+                project_type=ProjectType.FLAT if data['project_type'] == 'Квартира' else ProjectType.HOUSE,
                 deadline=data['deadline'],
                 cost=data['cost'],
                 square=data['square'],
@@ -269,18 +331,25 @@ class WorkAdmin(ModelView, model=Work):
                 images=images
             )
 
-            async for db_session in get_db():
+            for db_session in get_db():
                 await create_work(work_data, db_session)
 
 
 class NotificationAdmin(ModelView, model=Notification):
-    column_list = [Notification.id, Notification.message_type, Notification.content, Notification.user_id,
+    name = "Уведомление"
+    name_plural = "Уведомления"
+    icon = "fa-solid fa-bell"
+
+    column_list = [Notification.message_type, Notification.content, Notification.user_id,
                    Notification.attachment]
     column_searchable_list = [Notification.content]
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(message_type="Тип сообщения", content="Содержание", user_id="ID пользователя", attachment="Вложение")
+    column_labels = dict(message_type="Тип сообщения", content="Содержание", user_id="ID пользователя",
+                         attachment="Вложение", user="Пользователь")
+
+    column_details_exclude_list = [Notification.id]
 
     form_overrides = {
         'attachment': FileField,
@@ -290,25 +359,25 @@ class NotificationAdmin(ModelView, model=Notification):
     form_args = {
         'message_type': {
             'choices': [
-                (schemas.MessageType.MESSAGE, 'Сообщение'),
-                (schemas.MessageType.SIGNATURE, 'Акт'),
+                (MessageType.MESSAGE, 'Сообщение'),
+                (MessageType.SIGNATURE, 'Акт'),
             ]
         }
     }
 
     column_formatters_detail = {
         'attachment': lambda m, p: Markup(
-            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Download PDF</a>'
-        ) if m.attachment else 'ERROR'
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>'
+        ) if m.attachment else 'ERROR',
+        'message_type': lambda m, p: m.message_type
     }
 
     column_formatters = {
         'attachment': lambda m, p: Markup(
-            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Download PDF</a>'
-        ) if m.attachment else 'ERROR'
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>'
+        ) if m.attachment else 'ERROR',
+        'message_type': lambda m, p: m.message_type
     }
-
-
 
     async def on_model_change(self, data, model, is_created, request):
         if 'attachment' in data:
@@ -345,7 +414,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db_user = get_user_by_email(db, user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="email already registered")
-    return create_user(db, user)
+    return create_user(user, db)
 
 
 # Login Route

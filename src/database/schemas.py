@@ -52,6 +52,7 @@ class UserCreate(BaseModel):
     password: str
 
 
+
 class UserResponse(BaseModel):
     id: int
     email: str
