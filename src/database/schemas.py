@@ -105,6 +105,7 @@ class ReferralCodeInput(BaseModel):
 
 
 class Notification(BaseModel):
+    user_id: int
     message_type: MessageType
     content: str
     attachment: Optional[bytes]

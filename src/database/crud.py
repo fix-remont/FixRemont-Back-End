@@ -110,6 +110,7 @@ async def create_work(work: schemas.WorkCreate, db: AsyncSession):
 
 async def create_notification(notification: schemas.NotificationCreate, db: AsyncSession):
     notification_data = models.Notification(
+        user_id=notification.user_id,
         message_type=notification.message_type,
         content=notification.content,
         attachment=notification.attachment

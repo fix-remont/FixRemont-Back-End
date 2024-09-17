@@ -97,5 +97,8 @@ class Notification(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="notifications")
 
+    def __str__(self):
+        return f'{self.message_type.value}: {self.content}'
+
 engine = create_engine("postgresql+psycopg2://postgres:fixremontadmin@localhost:5432/postgres")
 Base.metadata.create_all(engine)

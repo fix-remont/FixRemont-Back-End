@@ -2,26 +2,26 @@ from enum import Enum
 
 
 class ProjectType(str, Enum):
-    FLAT = "FLAT"
-    HOUSE = "HOUSE"
+    FLAT = "Квартира"
+    HOUSE = "Дом"
 
 
 class PostType(str, Enum):
-    NEWS = "NEWS"
-    BLOG = "BLOG"
+    NEWS = "Новость"
+    BLOG = "Блог"
 
 
 class UserType(str, Enum):
-    REALTOR = "REALTOR"
-    DEVELOPER = "DEVELOPER"
-    INDIVIDUAL = "INDIVIDUAL"
+    REALTOR = "Риэлтор"
+    DEVELOPER = "Заказчик"
+    INDIVIDUAL = "Индивидуальный предприниматель"
 
 
 class NotificationType(str, Enum):
-    NO_MESSAGES = "NO_MESSAGES"
-    NEW_MESSAGE = "NEW_MESSAGE"
-    FILL_DOCUMENT = "FILL_DOCUMENT"
+    NO_MESSAGES = "Сообщений нет"
+    NEW_MESSAGE = "Новое сообщение"
+    FILL_DOCUMENT = "Заполнить документы"
 
 class MessageType(str, Enum):
-    MESSAGE = "MESSAGE"
-    SIGNATURE = "SIGNATURE"
+    MESSAGE = "Сообщение"
+    SIGNATURE = "Акт"
