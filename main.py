@@ -23,7 +23,6 @@ class CustomAuthBackend(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
         form_data = await request.form()
         db = next(get_db())
-        print(form_data['username'])
         user = get_user_by_email(db, form_data['username'])
         if not user or not verify_password(form_data['password'], user.hashed_password):
             return False
@@ -85,15 +84,12 @@ app.include_router(user_routes.router)
 app.include_router(routes.meta())
 
 
-# main.py
-
-
 # Register Route
 @app.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     db_user = get_user_by_email(db, user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="email already registered")
+        raise HTTPException(status_code=400, detail="Email already registered")
     return create_user(user, db)
 
 
@@ -121,4 +117,9 @@ def protected_route(token: str = Depends(oauth2_scheme), db: Session = Depends(g
 
     return {"message": f"Hello {user.email}, this is a protected route"}
 
+
 # Logout Route (JWT is stateless, so we don’t need an actual "logout" functionality)
+@app.post("/logout")
+def logout(request: Request):
+    request.session.pop("access_token", None)
+    return {"message": "Successfully logged out"}
