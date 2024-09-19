@@ -4,9 +4,8 @@ from src.database import models, schemas
 import base64
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.database.schemas import ProjectType, PostType
 from sqlalchemy.orm import Session
-from src.database.models import User
+from src.database.models import User, ProjectType, PostType
 from src.database.schemas import UserCreate
 from src.auth.auth_routes import get_password_hash
 
@@ -29,8 +28,13 @@ async def get_work(work_id: int, db: AsyncSession):
     return work_data
 
 
+def get_all_project_types(db: AsyncSession):
+    return db.query(ProjectType.name).all()
+
+
 async def get_all_works(project_type: Optional[str], db: AsyncSession):
-    if project_type and project_type not in [x.lower() for x in ProjectType.__members__]:
+    project_types = get_all_project_types(db)
+    if project_type and project_type not in [x[0].lower() for x in project_types]:
         raise HTTPException(status_code=400, detail="Invalid project types")
 
     if project_type == 'all' or not project_type:
@@ -70,7 +74,8 @@ async def get_post(post_id: int, db: AsyncSession):
 
 
 async def get_all_posts(post_type: Optional[str], db: AsyncSession):
-    if post_type and post_type not in [x.value for x in PostType]:
+    post_types = db.query(PostType.name).all()
+    if post_type and post_type not in [x[0].lower() for x in post_types]:
         raise HTTPException(status_code=400, detail="Invalid post type")
 
     if post_type == 'all' or not post_type:
@@ -147,13 +152,12 @@ def create_user(user: UserCreate, db: Session):
     return db_user
 
 
-
-
 # src/database/crud.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from src.database import models, schemas
+
 
 async def create_flat(db: AsyncSession, flat: schemas.FlatCreate):
     db_flat = models.Flat(**flat.dict())
@@ -162,13 +166,16 @@ async def create_flat(db: AsyncSession, flat: schemas.FlatCreate):
     await db.refresh(db_flat)
     return db_flat
 
+
 async def get_tariffs(db: AsyncSession):
     result = await db.execute(select(models.Tariff))
     return result.scalars().all()
 
+
 async def get_styles(db: AsyncSession):
     result = await db.execute(select(models.Style))
     return result.scalars().all()
+
 
 async def get_additional_options(db: AsyncSession):
     result = await db.execute(select(models.AdditionalOption))

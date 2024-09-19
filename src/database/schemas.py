@@ -1,6 +1,5 @@
 from pydantic import BaseModel, NonNegativeFloat, PositiveInt
 from typing import List
-from src.database.enums import ProjectType, PostType, NotificationType, UserType, MessageType
 from typing import Optional
 from pydantic import BaseModel
 
@@ -9,7 +8,7 @@ from src.database.models import LargeBinary
 
 class WorkBase(BaseModel):
     title: str
-    project_type: ProjectType
+    project_type: str
     deadline: PositiveInt
     cost: PositiveInt
     square: NonNegativeFloat
@@ -31,7 +30,7 @@ class Work(WorkBase):
 
 class PostBase(BaseModel):
     title: str
-    post_type: PostType
+    post_type: str
     content: List[str]
     images: List[str]
 
@@ -107,7 +106,7 @@ class ReferralCodeInput(BaseModel):
 
 class Notification(BaseModel):
     user_id: int
-    message_type: MessageType
+    message_type: str
     content: str
     attachment: Optional[bytes]
 
