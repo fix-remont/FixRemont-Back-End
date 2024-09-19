@@ -8,7 +8,7 @@ from src.database.models import LargeBinary
 
 class WorkBase(BaseModel):
     title: str
-    project_type: str
+    project_type: int
     deadline: PositiveInt
     cost: PositiveInt
     square: NonNegativeFloat
@@ -30,7 +30,7 @@ class Work(WorkBase):
 
 class PostBase(BaseModel):
     title: str
-    post_type: str
+    post_type: int
     content: List[str]
     images: List[str]
 
@@ -106,7 +106,7 @@ class ReferralCodeInput(BaseModel):
 
 class Notification(BaseModel):
     user_id: int
-    message_type: str
+    message_type: int
     content: str
     attachment: Optional[bytes]
 

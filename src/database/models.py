@@ -149,14 +149,14 @@ class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True)
     message_type_id = Column(Integer, ForeignKey('message_type.id'))
-    message_type = relationship("MessageType", back_populates="notifications")
+    message_type = relationship("MessageType", back_populates="notifications", lazy='joined')
     content = Column(String, nullable=False)
     attachment = Column(LargeBinary)
     user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", back_populates="notifications")
+    user = relationship("User", back_populates="notifications", lazy='joined')
 
     def __str__(self):
-        return f'{self.message_type.value}: {self.content}'
+        return f'{self.message_type}: {self.content}'
 
 
 class Flat(Base):

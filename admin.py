@@ -176,7 +176,7 @@ class PostAdmin(ModelView, model=Post):
 
             post_data = schemas.PostCreate(
                 title=data['title'],
-                post_type=db.query(PostType).filter_by(name=data['post_type']).first(),
+                post_type=data['post_type'],
                 content=data['content'],
                 images=images
             )
@@ -229,10 +229,10 @@ class WorkAdmin(ModelView, model=Work):
             file = data['images']
             content = await file.read()
             images.append(base64.b64encode(content).decode('utf-8') if content else None)
-
+            data['images'] = images
             work_data = schemas.WorkCreate(
                 title=data['title'],
-                project_type=db.query(ProjectType).filter_by(name=data['project_type']).first(),
+                project_type=data['project_type'],
                 deadline=data['deadline'],
                 cost=data['cost'],
                 square=data['square'],
@@ -281,10 +281,9 @@ class NotificationAdmin(ModelView, model=Notification):
         if 'attachment' in data:
             file_data = await data['attachment'].read()
             user_id = data['user']
-            db_session = next(db)
             notification_data = schemas.NotificationCreate(
                 user_id=user_id,
-                message_type=db.query(MessageType).filter_by(name=data['message_type']).first(),
+                message_type=data['message_type'],
                 content=data['content'],
                 attachment=file_data,
             )

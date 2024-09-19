@@ -99,7 +99,7 @@ async def get_all_posts(post_type: Optional[str], db: AsyncSession):
 async def create_work(work: schemas.WorkCreate, db: AsyncSession):
     work_data = models.Work(
         title=work.title,
-        project_type=work.project_type,
+        project_type_id=work.project_type,
         deadline=work.deadline,
         cost=work.cost,
         square=work.square,
@@ -116,7 +116,7 @@ async def create_work(work: schemas.WorkCreate, db: AsyncSession):
 async def create_notification(notification: schemas.NotificationCreate, db: AsyncSession):
     notification_data = models.Notification(
         user_id=notification.user_id,
-        message_type=notification.message_type,
+        message_type_id=notification.message_type,
         content=notification.content,
         attachment=notification.attachment
     )
@@ -129,7 +129,7 @@ async def create_notification(notification: schemas.NotificationCreate, db: Asyn
 async def create_post(post: schemas.PostCreate, db: AsyncSession):
     post_data = models.Post(
         title=post.title,
-        post_type=post.post_type,
+        post_type_id=post.post_type,
         content=post.content,
         images=post.images
     )
