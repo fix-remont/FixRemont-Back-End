@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from typing import Any, List
 import random
 import string
+import enum
 
 Base = declarative_base()
 pwd_context = CryptContext(schemes=["bcrypt", "argon2", "pbkdf2_sha256"], deprecated="auto")
@@ -20,17 +21,6 @@ class ProjectType(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     works = relationship("Work", back_populates="project_type")
-
-    def __str__(self):
-        return self.name
-
-
-class PostType(Base):
-    __tablename__ = 'post_type'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    posts = relationship("Post", back_populates="post_type")
 
     def __str__(self):
         return self.name
@@ -58,39 +48,73 @@ class NotificationType(Base):
         return self.name
 
 
-class MessageType(Base):
-    __tablename__ = 'message_type'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    notifications = relationship("Notification", back_populates="message_type")
-
-    def __str__(self):
-        return self.name
-
-
 class Work(Base):
     __tablename__ = 'works'
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     project_type_id = Column(Integer, ForeignKey('project_type.id'))
     project_type = relationship("ProjectType", back_populates="works")
-    deadline = Column(Integer)
+    deadline = Column(String)
     cost = Column(Integer)
     square = Column(Integer)
     task = Column(String)
     description = Column(ARRAY(String))
-    images = Column(ARRAY(String))
+    image1 = Column(String)
+    image2 = Column(String)
+    image3 = Column(String)
+    image4 = Column(String)
+    image5 = Column(String)
+    video_link = Column(String)
+    video_duration = Column(String)
+
+
+# класс Параграф DONE
+# title = str
+# body = str
+class Paragraph(Base):
+    __tablename__ = 'paragraphs'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    body = Column(String)
+    post_id = Column(Integer, ForeignKey('posts.id'))
+    post = relationship("Post", back_populates="paragraphs")
+
+    def __str__(self):
+        return self.title
+
+
+class PostType(enum.Enum):
+    news = 'Новость'
+    blog = 'Блог'
+
+    def __str__(self):
+        return self
 
 
 class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    post_type_id = Column(Integer, ForeignKey('post_type.id'))
-    post_type = relationship("PostType", back_populates="posts")
-    content = Column(ARRAY(String))
-    images = Column(ARRAY(String))
+    post_type = Column(Enum(PostType), nullable=False)
+    paragraphs = relationship("Paragraph", back_populates="post")
+    image1 = Column(String)
+    image2 = Column(String)
+    image3 = Column(String)
+
+
+# class FAQ: DONE
+# id = int
+# title = str
+# label = str
+
+class FAQ(Base):
+    __tablename__ = 'faqs'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    label = Column(String)
+
+    def __str__(self):
+        return self.title
 
 
 class User(Base):
@@ -100,6 +124,8 @@ class User(Base):
     hashed_password = Column(String)
     name = Column(String)
     surname = Column(String)
+    # patronymic = str DONE
+    patronymic = Column(String)
     phone = Column(String)
     user_type_id = Column(Integer, ForeignKey('user_type.id'))
     user_type = relationship("UserType", back_populates="users")
@@ -108,55 +134,109 @@ class User(Base):
     others_referral_code = Column(String)
     notification_status_id = Column(Integer, ForeignKey('notification_type.id'))
     notification_status = relationship("NotificationType", back_populates="users")
-    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)  # rename to is_verified (по пасспорту) DONE
     is_superuser = Column(Boolean, default=False)
-    clients = relationship("Client", back_populates="user")
-    contracts = relationship("Contract", back_populates="user")
+    contracts = relationship("Contract", back_populates="client")
     notifications = relationship("Notification", back_populates="user")
+    avatar = Column(String)
+
+    # avatar = bytea (image) DONE
 
     def __str__(self):
         return self.email
 
 
-class Client(Base):
-    __tablename__ = "clients"
-    id = Column(Integer, primary_key=True, index=True)
-    object = Column(String, nullable=False)
-    tariff = Column(String, nullable=False)
-    location = Column(String, nullable=False)
-    rate = Column(Integer, nullable=False)
-    current_stage = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", back_populates="clients")
+class TariffType(enum.Enum):
+    base = 'Базовый'
+    standard = 'Стандартный'
+    comfort = 'Комфорт'
+    business = 'Бизнес'
 
     def __str__(self):
-        return self.object
+        return self
+
+
+class OrderType(enum.Enum):
+    renovation = 'Ремонт'
+    building = 'Строительство'
+
+    def __str__(self):
+        return self
+
+
+# class WorkStatus:
+# id = int
+# title = str
+# document = ??? (документ)
+# status = bool
+class WorkStatus(Base):
+    __tablename__ = 'work_status'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    document = Column(LargeBinary)
+    status = Column(Boolean)
+    contract_id = Column(Integer, ForeignKey('contracts.id'))
+    contract = relationship("Contract", back_populates="work_status")
+
+    def __str__(self):
+        return self.title
+
+
+class ContractNotificationStatus(enum.Enum):
+    sign_act = 'Подписать акт'
+    message = 'Сообщение'
 
 
 class Contract(Base):
     __tablename__ = "contracts"
     id = Column(Integer, primary_key=True, index=True)
     object = Column(String, nullable=False)
-    tariff = Column(String, nullable=False)
+    order_type = Column(Enum(OrderType), nullable=False)
+    tariff_type = Column(Enum(TariffType), nullable=False)
+    square = Column(Integer, nullable=False)
     location = Column(String, nullable=False)
-    total_cost = Column(Integer, nullable=False)
     current_stage = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", back_populates="contracts")
+    total_cost = Column(Integer, nullable=False)
+    materials_cost = Column(Integer, nullable=False)
+    work_cost = Column(Integer, nullable=False)
+    revenue = Column(Integer, nullable=False)
+    client_id = Column(Integer, ForeignKey("users.id"))
+    client = relationship("User", back_populates="contracts")
+    work_status = relationship("WorkStatus", back_populates="contract")
+    date = Column(String, nullable=False)
+    notifications = relationship("Notification", back_populates="contract")
 
 
 class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True)
-    message_type_id = Column(Integer, ForeignKey('message_type.id'))
-    message_type = relationship("MessageType", back_populates="notifications", lazy='joined')
-    content = Column(String, nullable=False)
+    notification_status = Column(Enum(ContractNotificationStatus), nullable=False)
+    title = Column(String, nullable=False)
+    date = Column(String)
     attachment = Column(LargeBinary)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", back_populates="notifications", lazy='joined')
+    contract_id = Column(Integer, ForeignKey("contracts.id"))
+    contract = relationship("Contract", back_populates="notifications")
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship("User", back_populates="notifications")
 
     def __str__(self):
-        return f'{self.message_type}: {self.content}'
+        return f'{self.title}'
+
+
+# class PlatformNews (profile notifications):
+# id = int
+# title = str
+# date = str
+# label = str
+class PlatformNews(Base):
+    __tablename__ = 'platform_news'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    date = Column(String)
+    label = Column(String)
+
+    def __str__(self):
+        return self.title
 
 
 class Flat(Base):

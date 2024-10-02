@@ -70,7 +70,6 @@ admin = Admin(app=app, engine=engine, authentication_backend=CustomAuthBackend(
     secret_key="09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"), title="Панель управления")
 
 admin.add_view(UserAdmin)
-admin.add_view(ClientAdmin)
 admin.add_view(ContractAdmin)
 admin.add_view(PostAdmin)
 admin.add_view(WorkAdmin)
@@ -80,12 +79,12 @@ admin.add_view(TariffAdmin)
 admin.add_view(StyleAdmin)
 admin.add_view(AdditionalOptionAdmin)
 admin.add_view(ProjectTypeAdmin)
-admin.add_view(PostTypeAdmin)
-admin.add_view(MessageTypeAdmin)
-admin.add_view(NotificationTypeAdmin)
-admin.add_view(UserTypeAdmin)
+admin.add_view(ParagraphAdmin)
+admin.add_view(FAQAdmin)
+admin.add_view(PlatformNewsAdmin)
+admin.add_view(WorkStatusAdmin)
 
-app.include_router(user_routes.router)
+# app.include_router(user_routes.router)
 app.include_router(routes.meta())
 
 
