@@ -41,24 +41,11 @@ class ContractNotificationStatusEnum(str, Enum):
     message = 'Сообщение'
 
 
-# Pydantic Schemas
 class ProjectTypeSchema(BaseModel):
     name: str
 
     class Config:
         orm_mode = True
-
-
-class ProjectTypeCreate(ProjectTypeSchema):
-    pass
-
-
-class ProjectTypeUpdate(ProjectTypeSchema):
-    pass
-
-
-class ProjectTypeDelete(ProjectTypeSchema):
-    pass
 
 
 class UserTypeSchema(BaseModel):
@@ -68,18 +55,6 @@ class UserTypeSchema(BaseModel):
         orm_mode = True
 
 
-class UserTypeCreate(UserTypeSchema):
-    pass
-
-
-class UserTypeUpdate(UserTypeSchema):
-    pass
-
-
-class UserTypeDelete(UserTypeSchema):
-    pass
-
-
 class NotificationTypeSchema(BaseModel):
     name: str
 
@@ -87,347 +62,213 @@ class NotificationTypeSchema(BaseModel):
         orm_mode = True
 
 
-class NotificationTypeCreate(NotificationTypeSchema):
-    pass
-
-
-class NotificationTypeUpdate(NotificationTypeSchema):
-    pass
-
-
-class NotificationTypeDelete(NotificationTypeSchema):
-    pass
-
-
-class WorkSchema(BaseModel):
-    title: str
-    project_type_id: int
-    deadline: Optional[str]
-    cost: Optional[int]
-    square: Optional[int]
-    task: Optional[str]
-    description: Optional[List[str]]
-    image1: Optional[str]
-    image2: Optional[str]
-    image3: Optional[str]
-    image4: Optional[str]
-    image5: Optional[str]
-    video_link: Optional[str]
-    video_duration: Optional[str]
-
-    class Config:
-        orm_mode = True
-
-
-class WorkCreate(WorkSchema):
-    pass
-
-
-class WorkUpdate(WorkSchema):
-    pass
-
-
-class WorkDelete(WorkSchema):
-    pass
-
-
-class ParagraphSchema(BaseModel):
+class ArticleSchema(BaseModel):
     title: str
     body: str
-    post_id: int
 
     class Config:
         orm_mode = True
 
 
-class ParagraphCreate(ParagraphSchema):
-    pass
+class PortfolioPostSchema(BaseModel):
+    id: int
+    title: str
+    deadline: str
+    cost: int
+    square: int
+    video_link: str
+    video_duration: int
+    project_type: ProjectTypeSchema
+    images: Optional[List[str]]
+    articles: Optional[List[ArticleSchema]]
 
-
-class ParagraphUpdate(ParagraphSchema):
-    pass
-
-
-class ParagraphDelete(ParagraphSchema):
-    pass
+    class Config:
+        orm_mode = True
 
 
 class PostSchema(BaseModel):
+    id: int
     title: str
     post_type: PostTypeEnum
-    paragraphs: List[ParagraphSchema] = []
-    image1: Optional[str]
-    image2: Optional[str]
-    image3: Optional[str]
+    pictures: Optional[List[str]]
+    articles: Optional[List[ArticleSchema]]
 
     class Config:
         orm_mode = True
 
 
-class PostCreate(PostSchema):
-    pass
-
-
-class PostUpdate(PostSchema):
-    pass
-
-
-class PostDelete(PostSchema):
-    pass
-
-
-class FAQSchema(BaseModel):
+class BlogBulletSchema(BaseModel):
+    id: int
+    project_type: ProjectTypeSchema
     title: str
-    label: str
+    link: str
 
     class Config:
         orm_mode = True
 
 
-class FAQCreate(FAQSchema):
-    pass
-
-
-class FAQUpdate(FAQSchema):
-    pass
-
-
-class FAQDelete(FAQSchema):
-    pass
-
-
-class UserSchema(BaseModel):
-    email: EmailStr
-    name: Optional[str]
-    surname: Optional[str]
-    patronymic: Optional[str]
-    phone: Optional[str]
-    user_type_id: int
-    user_referral_code: str = Field(default_factory=lambda: ''.join(
-        random.choices(string.ascii_uppercase + string.digits, k=16)))
-    others_referral_code: Optional[str]
-    notification_status_id: int
-    is_verified: bool = False
-    is_superuser: bool = False
-    avatar: Optional[str]
+class MyContractsSchema(BaseModel):
+    id: int
+    object: str
+    tariff: TariffTypeEnum
+    location: str
+    reward: int
+    status: str
+    link: str
 
     class Config:
         orm_mode = True
 
 
-class UserCreate(UserSchema):
-    pass
+class OrderInfoSchema(BaseModel):
+    id: int
+    object: str
+    type: OrderTypeEnum
+    tarrif: TariffTypeEnum
+    area: int
+    location: str
+
+    class Config:
+        orm_mode = True
 
 
-class UserUpdate(UserSchema):
-    pass
+class WorkStateSchema(BaseModel):
+    id: int
+    title: str
+    status: bool
+    document: Optional[bytes]
 
-
-class UserDelete(UserSchema):
-    pass
+    class Config:
+        orm_mode = True
 
 
 class WorkStatusSchema(BaseModel):
-    title: str
-    document: Optional[bytes]
-    status: bool
-    contract_id: int
+    id: int
+    states: List[WorkStateSchema]
 
     class Config:
         orm_mode = True
 
 
-class WorkStatusCreate(WorkStatusSchema):
-    pass
-
-
-class WorkStatusUpdate(WorkStatusSchema):
-    pass
-
-
-class WorkStatusDelete(WorkStatusSchema):
-    pass
-
-
-class ContractSchema(BaseModel):
-    object: str
-    order_type: OrderTypeEnum
-    tariff_type: TariffTypeEnum
-    square: int
-    location: str
-    current_stage: str
-    total_cost: int
-    materials_cost: int
-    work_cost: int
-    revenue: int
-    client_id: int
-    date: str
+class EstimateSchema(BaseModel):
+    id: int
+    total: int
+    materials: int
+    job: int
+    reward: int
+    document: Optional[str]
 
     class Config:
         orm_mode = True
 
 
-class ContractCreate(ContractSchema):
-    pass
-
-
-class ContractUpdate(ContractSchema):
-    pass
-
-
-class ContractDelete(ContractSchema):
-    pass
-
-
-class NotificationSchema(BaseModel):
-    notification_status: ContractNotificationStatusEnum
-    title: str
-    date: Optional[str]
-    attachment: Optional[bytes]
-    contract_id: int
-    user_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class NotificationCreate(NotificationSchema):
-    pass
-
-
-class NotificationUpdate(NotificationSchema):
-    pass
-
-
-class NotificationDelete(NotificationSchema):
-    pass
-
-
-class PlatformNewsSchema(BaseModel):
-    title: str
-    date: str
-    label: str
-
-    class Config:
-        orm_mode = True
-
-
-class PlatformNewsCreate(PlatformNewsSchema):
-    pass
-
-
-class PlatformNewsUpdate(PlatformNewsSchema):
-    pass
-
-
-class PlatformNewsDelete(PlatformNewsSchema):
-    pass
-
-
-class FlatSchema(BaseModel):
-    square: int
-    address: str
-    number_of_rooms: int
-    number_of_doors: int
-    number_of_wc: int
-    demolition: bool = False
-    wall_build: bool = False
-    liquid_floor: bool = False
-    ceiling_stretching: bool = False
-    tariff_id: int
-    style_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class FlatCreate(FlatSchema):
-    pass
-
-
-class FlatUpdate(FlatSchema):
-    pass
-
-
-class FlatDelete(FlatSchema):
-    pass
-
-
-class TariffSchema(BaseModel):
+class ProfileInfoSchema(BaseModel):
+    id: int
     name: str
-    description: Optional[str]
+    surname: str
+    patronymic: str
+    phone: str
+    email: EmailStr
+    role: UserTypeSchema
+    avatar: str
+    passport_status: bool
 
     class Config:
         orm_mode = True
 
 
-class TariffCreate(TariffSchema):
-    pass
-
-
-class TariffUpdate(TariffSchema):
-    pass
-
-
-class TariffDelete(TariffSchema):
-    pass
-
-
-class StyleSchema(BaseModel):
-    name: str
-    description: Optional[str]
+class OrderClientInfoSchema(BaseModel):
+    id: int
+    client: UserResponse
 
     class Config:
         orm_mode = True
 
-
-class StyleCreate(StyleSchema):
-    pass
-
-
-class StyleUpdate(StyleSchema):
-    pass
-
-
-class StyleDelete(StyleSchema):
-    pass
-
-
-class AdditionalOptionSchema(BaseModel):
-    name: str
-    description: Optional[str]
-
-    class Config:
-        orm_mode = True
-
-
-class AdditionalOptionCreate(AdditionalOptionSchema):
-    pass
-
-
-class AdditionalOptionUpdate(AdditionalOptionSchema):
-    pass
-
-
-class AdditionalOptionDelete(AdditionalOptionSchema):
-    pass
-
-
-class FlatAdditionalOptionSchema(BaseModel):
-    flat_id: int
-    additional_option_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class FlatAdditionalOptionCreate(FlatAdditionalOptionSchema):
-    pass
-
-
-class FlatAdditionalOptionUpdate(FlatAdditionalOptionSchema):
-    pass
-
-
-class FlatAdditionalOptionDelete(FlatAdditionalOptionSchema):
-    pass
+# class FAQSchema(BaseModel):
+#     title: str
+#     label: str
+#
+#     class Config:
+#         orm_mode = True
+#
+#
+# class UserSchema(BaseModel):
+#     email: EmailStr
+#     name: Optional[str]
+#     surname: Optional[str]
+#     patronymic: Optional[str]
+#     password: str
+#     phone: Optional[str]
+#     user_type_id: int
+#     user_referral_code: str = Field(default_factory=lambda: ''.join(
+#         random.choices(string.ascii_uppercase + string.digits, k=16)))
+#     others_referral_code: Optional[str]
+#     notification_status_id: int
+#     is_verified: bool = False
+#     is_superuser: bool = False
+#     avatar: Optional[str]
+#
+#     class Config:
+#         orm_mode = True
+#
+#
+# class NotificationSchema(BaseModel):
+#     notification_status: ContractNotificationStatusEnum
+#     title: str
+#     date: Optional[str]
+#     attachment: Optional[bytes]
+#     contract_id: int
+#     user_id: int
+#
+#     class Config:
+#         orm_mode = True
+#
+#
+# class PlatformNewsSchema(BaseModel):
+#     title: str
+#     date: str
+#     label: str
+#
+#     class Config:
+#         orm_mode = True
+#
+#
+# class FlatSchema(BaseModel):
+#     square: int
+#     address: str
+#     number_of_rooms: int
+#     number_of_doors: int
+#     number_of_wc: int
+#     demolition: bool = False
+#     wall_build: bool = False
+#     liquid_floor: bool = False
+#     ceiling_stretching: bool = False
+#     tariff_id: int
+#     style_id: int
+#
+#     class Config:
+#         orm_mode = True
+#
+#
+# class StyleSchema(BaseModel):
+#     name: str
+#     description: Optional[str]
+#
+#     class Config:
+#         orm_mode = True
+#
+#
+# class AdditionalOptionSchema(BaseModel):
+#     name: str
+#     description: Optional[str]
+#
+#     class Config:
+#         orm_mode = True
+#
+#
+# class FlatAdditionalOptionSchema(BaseModel):
+#     flat_id: int
+#     additional_option_id: int
+#
+#     class Config:
+#         orm_mode = True
