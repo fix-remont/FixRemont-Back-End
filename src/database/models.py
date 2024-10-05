@@ -19,7 +19,7 @@ class ProjectType(Base):
     __tablename__ = 'project_type'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String)
     works = relationship("Work", back_populates="project_type")
 
     def __str__(self):
@@ -30,7 +30,7 @@ class UserType(Base):
     __tablename__ = 'user_type'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String)
     users = relationship("User", back_populates="user_type")
 
     def __str__(self):
@@ -41,7 +41,7 @@ class NotificationType(Base):
     __tablename__ = 'notification_type'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String)
     users = relationship("User", back_populates="notification_status")
 
     def __str__(self):
@@ -84,18 +84,18 @@ class Paragraph(Base):
 
 
 class PostType(enum.Enum):
-    news = 'Новость'
-    blog = 'Блог'
+    news = "Новость"
+    blog = "Блог"
 
     def __str__(self):
-        return self
+        return self.value
 
 
 class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    post_type = Column(Enum(PostType), nullable=False)
+    post_type = Column(Enum(PostType))
     paragraphs = relationship("Paragraph", back_populates="post")
     image1 = Column(String)
     image2 = Column(String)
@@ -110,8 +110,10 @@ class Post(Base):
 class FAQ(Base):
     __tablename__ = 'faqs'
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
+    heading = Column(String, index=True)
     label = Column(String)
+    date = Column(String)
+    key_word = Column(String)
 
     def __str__(self):
         return self.title
@@ -140,6 +142,7 @@ class User(Base):
     notifications = relationship("Notification", back_populates="user")
     avatar = Column(String)
 
+
     # avatar = bytea (image) DONE
 
     def __str__(self):
@@ -153,7 +156,7 @@ class TariffType(enum.Enum):
     business = 'Бизнес'
 
     def __str__(self):
-        return self
+        return self.value
 
 
 class OrderType(enum.Enum):
@@ -161,7 +164,7 @@ class OrderType(enum.Enum):
     building = 'Строительство'
 
     def __str__(self):
-        return self
+        return self.value
 
 
 # class WorkStatus:
@@ -176,7 +179,7 @@ class WorkStatus(Base):
     document = Column(LargeBinary)
     status = Column(Boolean)
     contract_id = Column(Integer, ForeignKey('contracts.id'))
-    contract = relationship("Contract", back_populates="work_status")
+    contract = relationship("Contract", back_populates="work_statuses")
 
     def __str__(self):
         return self.title
@@ -190,29 +193,31 @@ class ContractNotificationStatus(enum.Enum):
 class Contract(Base):
     __tablename__ = "contracts"
     id = Column(Integer, primary_key=True, index=True)
-    object = Column(String, nullable=False)
-    order_type = Column(Enum(OrderType), nullable=False)
-    tariff_type = Column(Enum(TariffType), nullable=False)
-    square = Column(Integer, nullable=False)
-    location = Column(String, nullable=False)
-    current_stage = Column(String, nullable=False)
-    total_cost = Column(Integer, nullable=False)
-    materials_cost = Column(Integer, nullable=False)
-    work_cost = Column(Integer, nullable=False)
-    revenue = Column(Integer, nullable=False)
+    object = Column(String)
+    order_type = Column(Enum(OrderType))
+    tariff_type = Column(Enum(TariffType))
+    square = Column(Integer)
+    location = Column(String)
+    current_stage = Column(String)
+    total_cost = Column(Integer)
+    materials_cost = Column(Integer)
+    work_cost = Column(Integer)
+    revenue = Column(Integer)
     client_id = Column(Integer, ForeignKey("users.id"))
     client = relationship("User", back_populates="contracts")
-    work_status = relationship("WorkStatus", back_populates="contract")
-    date = Column(String, nullable=False)
+    work_statuses = relationship("WorkStatus", back_populates="contract")
+    date = Column(String)
     notifications = relationship("Notification", back_populates="contract")
+    document = Column(LargeBinary)
 
 
 class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True)
-    notification_status = Column(Enum(ContractNotificationStatus), nullable=False)
-    title = Column(String, nullable=False)
+    notification_status = Column(Enum(ContractNotificationStatus), default=ContractNotificationStatus.message)
+    title = Column(String)
     date = Column(String)
+    label = Column(String)
     attachment = Column(LargeBinary)
     contract_id = Column(Integer, ForeignKey("contracts.id"))
     contract = relationship("Contract", back_populates="notifications")
@@ -242,11 +247,11 @@ class PlatformNews(Base):
 class Flat(Base):
     __tablename__ = 'flats'
     id = Column(Integer, primary_key=True, index=True)
-    square = Column(Integer, nullable=False)
-    address = Column(String, nullable=False)
-    number_of_rooms = Column(Integer, nullable=False)
-    number_of_doors = Column(Integer, nullable=False)
-    number_of_wc = Column(Integer, nullable=False)
+    square = Column(Integer)
+    address = Column(String)
+    number_of_rooms = Column(Integer)
+    number_of_doors = Column(Integer)
+    number_of_wc = Column(Integer)
     demolition = Column(Boolean, default=False)
     wall_build = Column(Boolean, default=False)
     liquid_floor = Column(Boolean, default=False)
@@ -259,21 +264,21 @@ class Flat(Base):
 class Tariff(Base):
     __tablename__ = 'tariffs'
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String)
     description = Column(String)
 
 
 class Style(Base):
     __tablename__ = 'styles'
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String)
     description = Column(String)
 
 
 class AdditionalOption(Base):
     __tablename__ = 'additional_options'
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String)
     description = Column(String)
 
 

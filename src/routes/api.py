@@ -17,19 +17,29 @@ from src.database.schemas import (
 router = APIRouter()
 
 
-@router.get("/portfolio_posts", response_model=List[PortfolioPostSchema])
+@router.get("/portfolio_posts", response_model=List[PortfolioPostSchema], tags=["GET"])
 async def get_portfolio_posts(db: AsyncSession = Depends(get_db)):
     return await cruds.get_portfolio_posts(db)
 
 
-@router.post("/portfolio_posts", response_model=PortfolioPostSchema)
+@router.post("/portfolio_posts", response_model=PortfolioPostSchema, tags=["fixed"])
 async def create_portfolio_post(portfolio_post: PortfolioPostSchema, db: AsyncSession = Depends(get_db)):
     return await cruds.create_portfolio_post(portfolio_post, db)
 
 
-@router.get("/posts", response_model=List[PostSchema])
-async def get_posts():
-    return []
+@router.post("/project_types", response_model=ProjectTypeSchema, tags=["fixed"])
+async def create_project_type(project_type: ProjectTypeSchema, db: AsyncSession = Depends(get_db)):
+    return await cruds.create_project_type(project_type, db)
+
+
+@router.get("/posts", response_model=List[PostSchema], tags=["GET"])
+async def get_posts(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_posts(db)
+
+
+@router.post("/posts", response_model=PostSchema, tags=["fixed"])
+async def create_post(post: PostSchema, db: AsyncSession = Depends(get_db)):
+    return await cruds.create_post(post, db)
 
 
 @router.get("/blog_bullets", response_model=List[BlogBulletSchema])
@@ -37,66 +47,92 @@ async def get_blog_bullets():
     return []
 
 
-@router.get("/my_contracts", response_model=List[MyContractsSchema])
-async def get_my_contracts():
-    return []
+@router.get("/my_contracts", response_model=List[MyContractsSchema], tags=["GET"])
+async def get_my_contracts(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_my_contracts(db)
 
 
-@router.get("/order_infos", response_model=List[OrderInfoSchema])
-async def get_order_infos():
-    return []
+@router.post("/my_contracts", response_model=MyContractsSchema, tags=["fixed"])
+async def create_my_contract(my_contract: MyContractsSchema, db: AsyncSession = Depends(get_db)):
+    return await cruds.create_my_contract(my_contract, db)
 
 
-@router.get("/work_states", response_model=List[WorkStateSchema])
-async def get_work_states():
-    return []
+@router.get("/order_infos", response_model=List[OrderInfoSchema], tags=["GET"])
+async def get_order_infos(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_order_infos(db)
 
 
-@router.get("/work_statuses", response_model=List[WorkStatusSchema])
-async def get_work_statuses():
-    return []
+@router.post("/order_infos", response_model=OrderInfoSchema, tags=["fixed"])
+async def create_order_info(order_info: OrderInfoSchema, db: AsyncSession = Depends(get_db)):
+    return await cruds.create_order_info(order_info, db)
 
 
-@router.get("/estimates", response_model=List[EstimateSchema])
-async def get_estimates():
-    return []
+@router.get("/work_states", response_model=List[WorkStateSchema], tags=["GET"])
+async def get_work_states(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_work_states(db)
 
 
-@router.get("/profile_infos", response_model=List[ProfileInfoSchema])
-async def get_profile_infos():
-    return []
+@router.post("/work_states", response_model=WorkStateSchema, tags=["fixed"])
+async def create_work_state(work_state: WorkStateSchema, db: AsyncSession = Depends(get_db)):
+    return await cruds.create_work_state(work_state, db)
 
 
-@router.get("/order_client_infos", response_model=List[OrderClientInfoSchema])
-async def get_order_client_infos():
-    return []
+@router.get("/work_statuses", response_model=List[WorkStatusSchema], tags=["GET"])
+async def get_work_statuses(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_work_statuses(db)
 
 
-@router.get("/order_notifications", response_model=List[OrderNotificationSchema])
+@router.get("/estimates", response_model=List[EstimateSchema], tags=["GET"])
+async def get_estimates(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_estimates(db)
+
+
+@router.get("/profile_infos", response_model=List[ProfileInfoSchema], tags=["GET"])
+async def get_profile_infos(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_profile_infos(db)
+
+
+@router.get("/order_client_infos", response_model=List[OrderClientInfoSchema], tags=["GET"])
+async def get_order_client_infos(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_order_client_infos(db)
+
+
+@router.get("/order_notifications", response_model=List[OrderNotificationSchema], tags=["deprecated"])
 async def get_order_notifications():
     return []
 
 
-@router.get("/order_documents", response_model=List[OrderDocumentsSchema])
-async def get_order_documents():
-    return []
+@router.get("/order_documents", response_model=List[OrderDocumentsSchema], tags=["GET"])
+async def get_order_documents(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_order_documents(db)
 
 
-@router.get("/contracts", response_model=List[ContractsSchema])
-async def get_contracts():
-    return []
+@router.get("/contracts", response_model=List[ContractsSchema], tags=["GET"])
+async def get_contracts(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_contracts(db)
 
 
-@router.get("/invited_partners", response_model=List[InvitedPartnersSchema])
-async def get_invited_partners():
-    return []
+@router.get("/invited_partners", response_model=List[InvitedPartnersSchema], tags=["GET"])
+async def get_invited_partners(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_invited_partners(db)
 
 
-@router.get("/profile_notifications", response_model=List[ProfileNotificationSchema])
-async def get_profile_notifications():
-    return []
+@router.get("/profile_notifications", response_model=List[ProfileNotificationSchema], tags=["GET"])
+async def get_profile_notifications(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_profile_notifications(db)
 
 
-@router.get("/support_categories", response_model=List[SupportCategorySchema])
-async def get_support_categories():
-    return []
+@router.post("/profile_notifications", response_model=ProfileNotificationSchema, tags=["fixed"])
+async def create_profile_notification(profile_notification: ProfileNotificationSchema,
+                                      db: AsyncSession = Depends(get_db)):
+    return await cruds.create_profile_notification(profile_notification, db)
+
+
+@router.get("/support_categories", response_model=List[SupportCategorySchema], tags=["GET"])
+async def get_support_categories(db: AsyncSession = Depends(get_db)):
+    return await cruds.get_support_categories(db)
+
+
+@router.post("/support_categories", response_model=SupportCategorySchema, tags=["fixed"])
+async def create_support_category(support_category: SupportCategorySchema, db: AsyncSession = Depends(get_db)):
+    return await cruds.create_support_category(support_category, db)

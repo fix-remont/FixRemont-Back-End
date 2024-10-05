@@ -16,6 +16,7 @@ class UserResponse(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 # Enum Classes
@@ -30,15 +31,27 @@ class TariffTypeEnum(str, Enum):
     comfort = 'Комфорт'
     business = 'Бизнес'
 
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
 
 class OrderTypeEnum(str, Enum):
     renovation = 'Ремонт'
     building = 'Строительство'
 
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
 
 class ContractNotificationStatusEnum(str, Enum):
     sign_act = 'Подписать акт'
     message = 'Сообщение'
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
 
 class ProjectTypeSchema(BaseModel):
@@ -46,6 +59,7 @@ class ProjectTypeSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class UserTypeSchema(BaseModel):
@@ -53,6 +67,7 @@ class UserTypeSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class NotificationTypeSchema(BaseModel):
@@ -60,6 +75,7 @@ class NotificationTypeSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class ArticleSchema(BaseModel):
@@ -68,6 +84,7 @@ class ArticleSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class PortfolioPostSchema(BaseModel):
@@ -79,8 +96,8 @@ class PortfolioPostSchema(BaseModel):
     video_link: str
     video_duration: int
     project_type: ProjectTypeSchema
-    images: Optional[List[str]]
-    articles: Optional[List[ArticleSchema]]
+    images: Optional[List[Optional[str]]] = None
+    articles: Optional[List[Optional[ArticleSchema]]] = None
 
     class Config:
         from_attributes = True
@@ -91,46 +108,48 @@ class PostSchema(BaseModel):
     id: int
     title: str
     post_type: PostTypeEnum
-    pictures: Optional[List[str]]
-    articles: Optional[List[ArticleSchema]]
+    pictures: Optional[List[Optional[str]]] = None
+    articles: Optional[List[Optional[ArticleSchema]]] = None
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class BlogBulletSchema(BaseModel):
     id: int
     project_type: ProjectTypeSchema
     title: str
-    link: str
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class MyContractsSchema(BaseModel):
     id: int
     object: str
-    tariff: TariffTypeEnum
+    tariff: Optional[TariffTypeEnum] = None
     location: str
-    reward: int
-    status: str
-    link: str
+    reward: Optional[int] = None
+    status: Optional[str] = None
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class OrderInfoSchema(BaseModel):
     id: int
-    object: str
-    type: OrderTypeEnum
-    tarrif: TariffTypeEnum
-    area: int
-    location: str
+    object: Optional[str] = None
+    type: Optional[OrderTypeEnum] = None
+    tariff: Optional[TariffTypeEnum] = None
+    area: Optional[int] = None
+    location: Optional[str] = None
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class WorkStateSchema(BaseModel):
@@ -141,6 +160,7 @@ class WorkStateSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class WorkStatusSchema(BaseModel):
@@ -149,6 +169,7 @@ class WorkStatusSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class EstimateSchema(BaseModel):
@@ -161,30 +182,33 @@ class EstimateSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class ProfileInfoSchema(BaseModel):
     id: int
-    name: str
-    surname: str
-    patronymic: str
-    phone: str
+    name: Optional[str]
+    surname: Optional[str]
+    patronymic: Optional[str]
+    phone: Optional[str]
     email: EmailStr
-    role: UserTypeSchema
-    avatar: str
+    role: Optional[UserTypeSchema]
+    avatar: Optional[str]
     passport_status: bool
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class OrderClientInfoSchema(BaseModel):
     id: int
-    client: UserResponse
-    date: str
+    client: ProfileInfoSchema
+    date: Optional[str]
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class OrderNotificationSchema(BaseModel):
@@ -195,6 +219,7 @@ class OrderNotificationSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class OrderDocumentsSchema(BaseModel):
@@ -206,6 +231,7 @@ class OrderDocumentsSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class ContractsSchema(BaseModel):
@@ -216,6 +242,7 @@ class ContractsSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class InvitedPartnersSchema(BaseModel):
@@ -225,25 +252,28 @@ class InvitedPartnersSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class ProfileNotificationSchema(BaseModel):
     id: int
-    title: str
-    date: str
-    label: str
+    title: Optional[str]
+    date: Optional[str]
+    label: Optional[str]
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class SupportCategorySchema(BaseModel):
-    heading: str
-    date: str
-    key_word: str
+    heading: Optional[str]
+    date: Optional[str]
+    key_word: Optional[str]
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 # class FAQSchema(BaseModel):
 #     title: str

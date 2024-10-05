@@ -4,6 +4,8 @@ from src.database import models
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import models, schemas
+from src.database.models import PostType, TariffType, OrderType
+from collections import defaultdict
 
 
 async def get_portfolio_posts(db: AsyncSession):
@@ -11,7 +13,11 @@ async def get_portfolio_posts(db: AsyncSession):
     all_works = result.scalars().all()
 
     portfolio_posts = []
+
     for work in all_works:
+        articles = [
+            schemas.ArticleSchema(title=art.split(": ")[0], body=art.split(": ")[1]) if isinstance(art, str) else art
+            for art in work.description]
         portfolio_posts.append({
             "id": work.id,
             "title": work.title,
@@ -22,7 +28,7 @@ async def get_portfolio_posts(db: AsyncSession):
             "video_duration": int(work.video_duration),
             "project_type": work.project_type,
             "images": [work.image1, work.image2, work.image3, work.image4, work.image5],
-            "articles": work.description
+            "articles": articles
         })
 
     return portfolio_posts
@@ -32,12 +38,13 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import models, schemas
 
+
 async def create_portfolio_post(portfolio_post: schemas.PortfolioPostSchema, db: AsyncSession):
     # Fetch the ProjectType instance from the database
     result = db.execute(select(models.ProjectType).filter_by(name=portfolio_post.project_type.name))
     project_type_instance = result.scalars().first()
-    # Convert articles to a list of dictionaries
-    articles = [f"{article.title}: {article.body}" for article in portfolio_post.articles] if portfolio_post.articles else []
+    articles = [f"{article.title}: {article.body}" for article in
+                portfolio_post.articles] if portfolio_post.articles else []
 
     new_portfolio_post = models.Work(
         title=portfolio_post.title,
@@ -61,3 +68,406 @@ async def create_portfolio_post(portfolio_post: schemas.PortfolioPostSchema, db:
 
     # Convert the SQLAlchemy model instance to a Pydantic model instance
     return schemas.PortfolioPostSchema.from_orm(new_portfolio_post)
+
+
+async def create_project_type(project_type: schemas.ProjectTypeSchema, db: AsyncSession):
+    new_project_type = models.ProjectType(name=project_type.name)
+    db.add(new_project_type)
+    db.commit()
+    db.refresh(new_project_type)
+    return schemas.ProjectTypeSchema.from_orm(new_project_type)
+
+
+async def get_posts(db: AsyncSession):
+    result = db.execute(select(models.Post))
+    all_posts = result.scalars().all()
+
+    posts = []
+
+    for post in all_posts:
+        articles = [
+            schemas.ArticleSchema(title=art.split(": ")[0], body=art.split(": ")[1]) if isinstance(art, str) else art
+            for art in post.paragraphs]
+        posts.append({
+            "id": post.id,
+            "title": post.title,
+            "post_type": post.post_type,
+            "images": [post.image1, post.image2, post.image3],
+            "articles": articles
+        })
+
+    return posts
+
+
+async def create_post(post: schemas.PostSchema, db: AsyncSession):
+    # Convert the post_type string to a PostType enum instance
+    post_type_enum = PostType(post.post_type)
+
+    # Create Article instances from the articles list
+    articles_instances = [models.Paragraph(title=article.title, body=article.body) for article in post.articles if
+                          article is not None] if post.articles else []
+
+    new_post = models.Post(
+        title=post.title,
+        post_type=post_type_enum,  # Use the PostType enum instance here
+        image1=post.pictures[0] if post.pictures else None,
+        image2=post.pictures[1] if len(post.pictures) > 1 else None,
+        image3=post.pictures[2] if len(post.pictures) > 2 else None,
+        paragraphs=articles_instances  # Assign the list of Article instances to paragraphs
+    )
+
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+
+    return schemas.PostSchema.from_orm(new_post)
+
+
+# async def get_blog_bullets(db: AsyncSession):
+#     result = db.execute(select(models.Post))
+#     all_posts = result.scalars().all()
+#
+#     posts = []
+#
+#     for post in all_posts:
+#         articles = [
+#             schemas.ArticleSchema(title=art.split(": ")[0], body=art.split(": ")[1]) if isinstance(art, str) else art
+#             for art in post.paragraphs]
+#         posts.append({
+#             "id": post.id,
+#             "title": post.title,
+#             "post_type": post.post_type,
+#             "images": [post.image1, post.image2, post.image3],
+#             "articles": articles
+#         })
+#
+#     return posts
+
+
+async def get_my_contracts(db: AsyncSession):
+    result = db.execute(select(models.Contract))
+    all_contracts = result.scalars().all()
+
+    my_contracts = []
+
+    for contract in all_contracts:
+        my_contracts.append({
+            "id": contract.id,
+            "object": contract.object,
+            "tariff": contract.tariff_type,
+            "location": contract.location,
+            "reward": contract.revenue,
+            "status": contract.current_stage
+        })
+
+    return my_contracts
+
+
+async def create_my_contract(my_contract: schemas.MyContractsSchema, db: AsyncSession):
+    contract_type_enum = TariffType(my_contract.tariff)
+    new_my_contract = models.Contract(
+        object=my_contract.object,
+        tariff_type=contract_type_enum,
+        location=my_contract.location,
+        revenue=my_contract.reward,
+        current_stage=my_contract.status
+    )
+
+    db.add(new_my_contract)
+    db.commit()
+    db.refresh(new_my_contract)
+
+    return schemas.MyContractsSchema.from_orm(new_my_contract)
+
+
+async def get_order_infos(db: AsyncSession):
+    result = db.execute(select(models.Contract))
+    all_order_infos = result.scalars().all()
+
+    order_infos = []
+
+    for order_info in all_order_infos:
+        order_infos.append({
+            "id": order_info.id,
+            "type": order_info.order_type,
+            "tarrif": order_info.tariff_type,
+            "area": order_info.square,
+            "location": order_info.location
+        })
+
+    return order_infos
+
+
+async def create_order_info(order_info: schemas.OrderInfoSchema, db: AsyncSession):
+    order_type_enum = OrderType(order_info.type)
+    tariff_type_enum = TariffType(order_info.tariff)
+    new_order_info = models.Contract(
+        object=order_info.object,
+        order_type=order_type_enum,
+        tariff_type=tariff_type_enum,
+        square=order_info.area,
+        location=order_info.location
+    )
+
+    db.add(new_order_info)
+    db.commit()
+    db.refresh(new_order_info)
+
+    return schemas.OrderInfoSchema.from_orm(new_order_info)
+
+
+async def get_work_states(db: AsyncSession):
+    result = db.execute(select(models.WorkStatus))
+    all_work_states = result.scalars().all()
+
+    work_states = []
+
+    for work_state in all_work_states:
+        work_states.append({
+            "id": work_state.id,
+            "title": work_state.title,
+            "status": work_state.status,
+            "document": work_state.document
+        })
+
+    return work_states
+
+
+async def create_work_state(work_state: schemas.WorkStateSchema, db: AsyncSession):
+    new_work_state = models.WorkStatus(
+        title=work_state.title,
+        status=work_state.status,
+        document=work_state.document
+    )
+
+    db.add(new_work_state)
+    db.commit()
+    db.refresh(new_work_state)
+
+    return schemas.WorkStateSchema.from_orm(new_work_state)
+
+
+async def get_work_statuses(db: AsyncSession):
+    result = db.execute(select(models.Contract))
+    all_work_statuses = result.scalars().all()
+
+    states_by_contract_id = defaultdict(list)
+
+    for work_status in all_work_statuses:
+        for state in work_status.work_statuses:
+            if state.contract_id:
+                states_by_contract_id[state.contract_id].append({
+                    "id": state.id,
+                    "title": state.title,
+                    "status": state.status,
+                    "document": state.document
+                })
+
+    # Convert defaultdict to a list of dictionaries
+    states_by_contract_id_list = [{"id": contract_id, "states": states}
+                                  for i, (contract_id, states) in enumerate(states_by_contract_id.items())]
+
+    return states_by_contract_id_list
+
+
+async def get_estimates(db: AsyncSession):
+    result = db.execute(select(models.Contract))
+    all_contracts = result.scalars().all()
+
+    estimates = []
+
+    for contract in all_contracts:
+        estimates.append({
+            "id": contract.id,
+            "total": contract.total_cost if contract.total_cost else 0,
+            "materials": contract.materials_cost if contract.materials_cost else 0,
+            "job": contract.work_cost if contract.work_cost else 0,
+            "reward": contract.revenue if contract.revenue else 0,
+            "document": contract.document
+        })
+
+    return estimates
+
+
+async def get_profile_infos(db: AsyncSession):
+    result = db.execute(select(models.User))
+    all_users = result.scalars().all()
+
+    profile_infos = []
+
+    for user in all_users:
+        profile_infos.append({
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "patronymic": user.patronymic,
+            "phone": user.phone,
+            "email": user.email,
+            "role": user.user_type,
+            "avatar": user.avatar,
+            "passport_status": user.is_verified
+        })
+
+    return profile_infos
+
+
+async def get_order_client_infos(db: AsyncSession):
+    result = db.execute(select(models.User))
+    all_users = result.scalars().all()
+
+    clients_by_user_id = defaultdict(list)
+
+    for user in all_users:
+        clients_by_user_id[user.id].append({
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "patronymic": user.patronymic,
+            "phone": user.phone,
+            "email": user.email,
+            "role": user.user_type,
+            "avatar": user.avatar,
+            "passport_status": user.is_verified
+        })
+
+    # Convert defaultdict to a list of dictionaries
+    clients_by_user_id_list = [{"id": i, "user_id": user_id, "client": clients[0], "date": "TEST DATE"}
+                               for i, (user_id, clients) in enumerate(clients_by_user_id.items())]
+
+    return clients_by_user_id_list
+
+
+async def get_order_documents(db: AsyncSession):
+    result = db.execute(select(models.Contract))
+    all_contracts = result.scalars().all()
+
+    order_documents = []
+
+    for contract in all_contracts:
+        order_documents.append({
+            "id": contract.id,
+            "title": contract.object,
+            "label": contract.current_stage,
+            "type": {"name": contract.order_type if contract.order_type else "No type"},  # handle None case
+            "attachment": contract.document if contract.document else "No attachment",
+            # replace with actual logic to get attachment
+            "document": contract.document
+        })
+
+    return order_documents
+
+
+async def get_contracts(db: AsyncSession):
+    result = db.execute(select(models.Contract))
+    all_contracts = result.scalars().all()
+
+    contracts = []
+
+    for contract in all_contracts:
+        contracts.append({
+            "order": {
+                "id": contract.id,
+                "object": contract.object,
+                "order_type": contract.order_type,
+                "tariff_type": contract.tariff_type,
+                "square": contract.square,
+                "location": contract.location
+            },
+            "status": {
+                "id": contract.id,
+                "title": contract.current_stage,
+                "document": contract.document,
+                "name": contract.current_stage
+            },
+            "stage": contract.work_statuses[0] if contract.work_statuses else "No stage",  # handle empty list case
+            "reward": contract.revenue
+        })
+
+    return contracts
+
+
+async def get_invited_partners(db: AsyncSession):
+    result = db.execute(select(models.User))
+    all_users = result.scalars().all()
+
+    invited_partners = []
+
+    for user in all_users:
+        invited_partners.append({
+            "id": user.id,
+            "data": {
+                "id": user.id,
+                "name": user.name,
+                "surname": user.surname,
+                "patronymic": user.patronymic,
+                "phone": user.phone,
+                "email": user.email,
+                "role": user.user_type,
+                "avatar": user.avatar,
+                "passport_status": user.is_verified
+            },
+            "reward": -10000
+        })
+
+    return invited_partners
+
+
+async def get_profile_notifications(db: AsyncSession):
+    result = db.execute(select(models.Notification))
+    all_notifications = result.scalars().all()
+
+    profile_notifications = []
+
+    for notification in all_notifications:
+        profile_notifications.append({
+            "id": notification.id,
+            "title": notification.title,
+            "date": notification.date,
+            "label": notification.label
+        })
+
+    return profile_notifications
+
+
+async def create_profile_notification(profile_notification: schemas.ProfileNotificationSchema, db: AsyncSession):
+    new_profile_notification = models.Notification(
+        title=profile_notification.title,
+        date=profile_notification.date,
+        label=profile_notification.label,
+    )
+
+    db.add(new_profile_notification)
+    db.commit()
+    db.refresh(new_profile_notification)
+
+    return schemas.ProfileNotificationSchema.from_orm(new_profile_notification)
+
+
+async def get_support_categories(db: AsyncSession):
+    result = db.execute(select(models.FAQ))
+    all_faqs = result.scalars().all()
+
+    support_categories = []
+
+    for faq in all_faqs:
+        support_categories.append({
+            "heading": faq.heading,
+            "date": faq.date,
+            "key_word": faq.key_word
+        })
+
+    return support_categories
+
+
+async def create_support_category(support_category: schemas.SupportCategorySchema, db: AsyncSession):
+    new_support_category = models.FAQ(
+        heading=support_category.heading,
+        date=support_category.date,
+        key_word=support_category.key_word
+    )
+
+    db.add(new_support_category)
+    db.commit()
+    db.refresh(new_support_category)
+
+    return schemas.SupportCategorySchema.from_orm(new_support_category)
