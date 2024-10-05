@@ -83,6 +83,7 @@ class PortfolioPostSchema(BaseModel):
     articles: Optional[List[ArticleSchema]]
 
     class Config:
+        from_attributes = True
         orm_mode = True
 
 
@@ -180,6 +181,66 @@ class ProfileInfoSchema(BaseModel):
 class OrderClientInfoSchema(BaseModel):
     id: int
     client: UserResponse
+    date: str
+
+    class Config:
+        orm_mode = True
+
+
+class OrderNotificationSchema(BaseModel):
+    id: int
+    type: NotificationTypeSchema
+    title: str
+    label: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+class OrderDocumentsSchema(BaseModel):
+    id: int
+    title: str
+    label: str
+    type: NotificationTypeSchema
+    attachment: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+class ContractsSchema(BaseModel):
+    order: OrderInfoSchema
+    status: NotificationTypeSchema
+    stage: str
+    reward: int
+
+    class Config:
+        orm_mode = True
+
+
+class InvitedPartnersSchema(BaseModel):
+    id: int
+    data: ProfileInfoSchema
+    reward: int
+
+    class Config:
+        orm_mode = True
+
+
+class ProfileNotificationSchema(BaseModel):
+    id: int
+    title: str
+    date: str
+    label: str
+
+    class Config:
+        orm_mode = True
+
+
+class SupportCategorySchema(BaseModel):
+    heading: str
+    date: str
+    key_word: str
 
     class Config:
         orm_mode = True
