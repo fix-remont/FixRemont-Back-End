@@ -762,3 +762,9 @@ def get_support_category(id, db):
     }
 
     return support_category_response
+
+
+def get_user_by_email(db, email):
+    result = db.execute(select(models.User).where(models.User.email == email))
+    user = result.scalars().first()
+    return user
