@@ -54,12 +54,12 @@ async def create_portfolio_post(portfolio_post: schemas.PortfolioPostSchema, db:
         square=portfolio_post.square,
         video_link=portfolio_post.video_link,
         video_duration=str(portfolio_post.video_duration),
-        project_type_id=project_type_instance.id,
+        project_type_id=project_type_instance.id if project_type_instance else None,
         image1=portfolio_post.images[0] if portfolio_post.images else None,
-        image2=portfolio_post.images[1] if len(portfolio_post.images) > 1 else None,
-        image3=portfolio_post.images[2] if len(portfolio_post.images) > 2 else None,
-        image4=portfolio_post.images[3] if len(portfolio_post.images) > 3 else None,
-        image5=portfolio_post.images[4] if len(portfolio_post.images) > 4 else None,
+        image2=portfolio_post.images[1] if portfolio_post.images and len(portfolio_post.images) > 1 else None,
+        image3=portfolio_post.images[2] if portfolio_post.images and len(portfolio_post.images) > 2 else None,
+        image4=portfolio_post.images[3] if portfolio_post.images and len(portfolio_post.images) > 3 else None,
+        image5=portfolio_post.images[4] if portfolio_post.images and len(portfolio_post.images) > 4 else None,
         description=articles
     )
 
@@ -768,3 +768,6 @@ def get_user_by_email(db, email):
     result = db.execute(select(models.User).where(models.User.email == email))
     user = result.scalars().first()
     return user
+
+
+

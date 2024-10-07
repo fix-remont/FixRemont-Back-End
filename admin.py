@@ -390,12 +390,18 @@ from sqladmin import ModelView
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from src.database.schemas import PostTypeEnum, PortfolioPostSchema, ProjectTypeSchema, ArticleSchema
+
 db = get_db()
 
 
 async def get_all_model_values(db: AsyncSession, model):
     result = await db.execute(select(model.name))
     return [x[0] for x in result.scalars().all()]
+
+
+def get_project_type_by_id(db: AsyncSession, id: int):
+    return db.query(ProjectType).filter_by(id=id).first()
 
 
 class UserAdmin(ModelView, model=User):
@@ -504,13 +510,12 @@ class PostAdmin(ModelView, model=Post):
             file = data['image3']
             content = await file.read()
             data['image3'] = base64.b64encode(content).decode('utf-8') if content else None
-        post_data = schemas.PostCreate(
-            title=data['title'],
-            post_type=data['post_type'],
-            paragraphs=data['paragraphs'],
-            image1=data['image1'],
-            image2=data['image2'],
-            image3=data['image3']
+        post_data = schemas.PostSchema(
+            id=data.get('id'),
+            title=data.get('title'),
+            post_type=PostTypeEnum(data.get('post_type')),
+            paragraphs=data.get('paragraphs', []),
+            pictures=[data.get('image1'), data.get('image2'), data.get('image3')]
         )
         for db_session in get_db():
             await create_post(post_data, db_session)
@@ -574,22 +579,26 @@ class WorkAdmin(ModelView, model=Work):
                 file = data[image_field]
                 content = await file.read()
                 data[image_field] = base64.b64encode(content).decode('utf-8') if content else None
-        work_data = schemas.WorkCreate(
-            title=data['title'],
-            project_type=data['project_type'],
-            deadline=data['deadline'],
-            cost=data['cost'],
-            square=data['square'],
-            task=data['task'],
-            description=data['description'],
-            image1=data['image1'],
-            image2=data['image2'],
-            image3=data['image3'],
-            image4=data['image4'],
-            image5=data['image5'],
-            video_link=data['video_link'],
-            video_duration=data['video_duration']
+        description = data.get('description')
+        articles = []
+        for block in description:
+            key, value = block.split(":")
+            articles.append(ArticleSchema(title=key.strip(), body=value.strip()))
+        print(get_project_type_by_id(db, data.get('project_type')))
+        work_data = PortfolioPostSchema(
+            id=0,
+            title=data.get('title'),
+            project_type=ProjectTypeSchema(name=data.get('project_type')),
+            deadline=data.get('deadline'),
+            cost=data.get('cost'),
+            square=data.get('square'),
+            video_link=data.get('video_link'),
+            video_duration=int(data.get('video_duration') if data.get('video_duration') else 0),
+            pictures=[data.get('image1'), data.get('image2'), data.get('image3'), data.get('image4'),
+                      data.get('image5')],
+            articles=articles
         )
+        print(work_data)
         for db_session in get_db():
             await create_portfolio_post(work_data, db_session)
 
