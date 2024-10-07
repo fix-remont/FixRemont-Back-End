@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.3
--- Dumped by pg_dump version 16.3
+-- Dumped from database version 16.4
+-- Dumped by pg_dump version 16.4
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -919,7 +919,8 @@ COPY public.posts (id, title, post_type, image1, image2, image3) FROM stdin;
 --
 
 COPY public.project_type (id, name) FROM stdin;
-1	string
+2	Строительство домов
+3	Ремонт квартир
 \.
 
 
@@ -969,9 +970,7 @@ COPY public.work_status (id, title, document, status, contract_id) FROM stdin;
 --
 
 COPY public.works (id, title, project_type_id, deadline, cost, square, task, description, image1, image2, image3, image4, image5, video_link, video_duration) FROM stdin;
-1	string	1	string	0	0	\N	{"string: string"}	string	\N	\N	\N	\N	string	0
-2	string	1	string	0	0	\N	{"string: string"}	string	\N	\N	\N	\N	string	0
-3	string	1	string	0	0	\N	{"string: string"}	string	\N	\N	\N	\N	string	0
+1	Дом из кирпича 560 м2 на Барвихе	2	15 дней	2500000	240	Театр, специализирующийся на разнообразных представлениях, выразил желание усовершенствовать свои технические возможности для привлечения новой аудитории и создания незабываемых визуальных впечатлений. Заказчик искал комплексное решение для обновления мультимедийного оборудования на сцене и в зрительном зале.	{"Тест1: абоба","Тест2: обабо"}	\N	\N	\N	\N	\N	https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley	1:25 минут
 \.
 
 
@@ -1042,7 +1041,7 @@ SELECT pg_catalog.setval('public.posts_id_seq', 1, true);
 -- Name: project_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.project_type_id_seq', 1, true);
+SELECT pg_catalog.setval('public.project_type_id_seq', 4, true);
 
 
 --
@@ -1084,7 +1083,7 @@ SELECT pg_catalog.setval('public.work_status_id_seq', 1, false);
 -- Name: works_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.works_id_seq', 3, true);
+SELECT pg_catalog.setval('public.works_id_seq', 4, true);
 
 
 --
