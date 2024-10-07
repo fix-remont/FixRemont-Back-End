@@ -94,7 +94,7 @@ class PortfolioPostSchema(BaseModel):
     cost: int
     square: int
     video_link: str
-    video_duration: int
+    video_duration: str
     project_type: ProjectTypeSchema
     images: Optional[List[Optional[str]]] = None
     articles: Optional[List[Optional[ArticleSchema]]] = None

@@ -41,7 +41,6 @@ from src.database import models, schemas
 
 
 async def create_portfolio_post(portfolio_post: schemas.PortfolioPostSchema, db: AsyncSession):
-    # Fetch the ProjectType instance from the database
     result = db.execute(select(models.ProjectType).filter_by(name=portfolio_post.project_type.name))
     project_type_instance = result.scalars().first()
     articles = [f"{article.title}: {article.body}" for article in
@@ -769,5 +768,10 @@ def get_user_by_email(db, email):
     user = result.scalars().first()
     return user
 
+
+def get_project_type_by_id(db, id):
+    result = db.execute(select(models.ProjectType).where(models.ProjectType.id == id))
+    project_type = result.scalars().first()
+    return project_type
 
 

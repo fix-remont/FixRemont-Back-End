@@ -377,7 +377,7 @@
 
 from asyncio import Future
 from sqladmin.fields import FileField
-from src.database.cruds import create_post, create_portfolio_post
+from src.database.cruds import create_post, create_portfolio_post, get_project_type_by_id
 import base64
 from markupsafe import Markup
 from src.database import schemas
@@ -400,8 +400,9 @@ async def get_all_model_values(db: AsyncSession, model):
     return [x[0] for x in result.scalars().all()]
 
 
-def get_project_type_by_id(db: AsyncSession, id: int):
-    return db.query(ProjectType).filter_by(id=id).first()
+# async def get_project_type_by_id(db_session: AsyncSession, id: int):
+#     result = await db_session.execute(select(ProjectType).filter_by(id=id))
+#     return result.scalar_one()
 
 
 class UserAdmin(ModelView, model=User):
@@ -584,19 +585,18 @@ class WorkAdmin(ModelView, model=Work):
         for block in description:
             key, value = block.split(":")
             articles.append(ArticleSchema(title=key.strip(), body=value.strip()))
-        print(get_project_type_by_id(db, data.get('project_type')))
         work_data = PortfolioPostSchema(
             id=0,
             title=data.get('title'),
-            project_type=ProjectTypeSchema(name=data.get('project_type')),
+            project_type=get_project_type_by_id(db, data.get('project_type')),
             deadline=data.get('deadline'),
             cost=data.get('cost'),
             square=data.get('square'),
             video_link=data.get('video_link'),
-            video_duration=int(data.get('video_duration') if data.get('video_duration') else 0),
+            video_duration=data.get('video_duration'),
             pictures=[data.get('image1'), data.get('image2'), data.get('image3'), data.get('image4'),
                       data.get('image5')],
-            articles=articles
+            articles=articles # TODO: не сохраняются в бд
         )
         print(work_data)
         for db_session in get_db():

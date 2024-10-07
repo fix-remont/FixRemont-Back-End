@@ -22,7 +22,7 @@ from src.database.cruds import get_user_by_email
 class CustomAuthBackend(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
         form_data = await request.form()
-        db = next(get_db())
+        db = get_db()
         user = get_user_by_email(db, form_data['username'])
         if not user or not verify_password(form_data['password'], user.hashed_password):
             return False
@@ -41,7 +41,7 @@ class CustomAuthBackend(AuthenticationBackend):
         if token:
             payload = decode_token(token)
             if payload:
-                db = next(get_db())
+                db = get_db()
                 user = get_user_by_email(db, payload.get("sub"))
                 if user:
                     return user
