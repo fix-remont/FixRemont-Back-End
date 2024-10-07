@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import models
@@ -471,3 +472,293 @@ async def create_support_category(support_category: schemas.SupportCategorySchem
     db.refresh(new_support_category)
 
     return schemas.SupportCategorySchema.from_orm(new_support_category)
+
+
+def get_portfolio_post(id, db):
+    result = db.execute(select(models.Work).where(models.Work.id == id))
+    work = result.scalars().first()
+
+    if work is None:
+        raise HTTPException(status_code=404, detail="Work not found")
+
+    work_response = {
+        "id": work.id,
+        "title": work.title,
+        "deadline": work.deadline,
+        "cost": work.cost,
+        "square": work.square,
+        "video_link": work.video_link,
+        "video_duration": int(work.video_duration),
+        "project_type": work.project_type,
+        "images": [work.image1, work.image2, work.image3, work.image4, work.image5],
+        "articles": [
+            schemas.ArticleSchema(title=art.split(": ")[0], body=art.split(": ")[1]) if isinstance(art, str) else art
+            for art in work.description]
+    }
+
+    return work_response
+
+
+def get_post(id, db):
+    result = db.execute(select(models.Post).where(models.Post.id == id))
+    post = result.scalars().first()
+
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    post_response = {
+        "id": post.id,
+        "title": post.title,
+        "post_type": post.post_type,
+        "images": [post.image1, post.image2, post.image3],
+        "articles": [
+            schemas.ArticleSchema(title=art.title, body=art.body)
+            for art in post.paragraphs]
+    }
+
+    return post_response
+
+
+def get_my_contract(id, db):
+    result = db.execute(select(models.Contract).where(models.Contract.id == id))
+    contract = result.scalars().first()
+
+    if contract is None:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    contract_response = {
+        "id": contract.id,
+        "object": contract.object,
+        "tariff": contract.tariff_type,
+        "location": contract.location,
+        "reward": contract.revenue,
+        "status": contract.current_stage
+    }
+
+    return contract_response
+
+
+def get_order_info(id, db):
+    result = db.execute(select(models.Contract).where(models.Contract.id == id))
+    order_info = result.scalars().first()
+
+    if order_info is None:
+        raise HTTPException(status_code=404, detail="Order info not found")
+
+    order_info_response = {
+        "id": order_info.id,
+        "type": order_info.order_type,
+        "tarrif": order_info.tariff_type,
+        "area": order_info.square,
+        "location": order_info.location
+    }
+
+    return order_info_response
+
+
+def get_work_state(id, db):
+    result = db.execute(select(models.WorkStatus).where(models.WorkStatus.id == id))
+    work_state = result.scalars().first()
+
+    if work_state is None:
+        raise HTTPException(status_code=404, detail="Work state not found")
+
+    work_state_response = {
+        "id": work_state.id,
+        "title": work_state.title,
+        "status": work_state.status,
+        "document": work_state.document
+    }
+
+    return work_state_response
+
+
+def get_work_status(id, db):
+    result = db.execute(select(models.Contract).where(models.Contract.id == id))
+    work_status = result.scalars().first()
+
+    if work_status is None:
+        raise HTTPException(status_code=404, detail="Work status not found")
+
+    work_status_response = {
+        "id": work_status.id,
+        "title": work_status.current_stage,
+        "document": work_status.document,
+        "name": work_status.current_stage
+    }
+
+    return work_status_response
+
+
+def get_estimate(id, db):
+    result = db.execute(select(models.Contract).where(models.Contract.id == id))
+    estimate = result.scalars().first()
+
+    if estimate is None:
+        raise HTTPException(status_code=404, detail="Estimate not found")
+
+    estimate_response = {
+        "id": estimate.id,
+        "total": estimate.total_cost if estimate.total_cost else 0,
+        "materials": estimate.materials_cost if estimate.materials_cost else 0,
+        "job": estimate.work_cost if estimate.work_cost else 0,
+        "reward": estimate.revenue if estimate.revenue else 0,
+        "document": estimate.document
+    }
+
+    return estimate_response
+
+
+def get_profile_info(id, db):
+    result = db.execute(select(models.User).where(models.User.id == id))
+    user = result.scalars().first()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    profile_info_response = {
+        "id": user.id,
+        "name": user.name,
+        "surname": user.surname,
+        "patronymic": user.patronymic,
+        "phone": user.phone,
+        "email": user.email,
+        "role": user.user_type,
+        "avatar": user.avatar,
+        "passport_status": user.is_verified
+    }
+
+    return profile_info_response
+
+
+def get_order_client_info(id, db):
+    result = db.execute(select(models.User).where(models.User.id == id))
+    user = result.scalars().first()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    order_client_info_response = {
+        "id": user.id,
+        "client": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "patronymic": user.patronymic,
+            "phone": user.phone,
+            "email": user.email,
+            "role": user.user_type,
+            "avatar": user.avatar,
+            "passport_status": user.is_verified
+        },
+        "date": "TEST DATE"
+    }
+
+    return order_client_info_response
+
+
+def get_order_document(id, db):
+    result = db.execute(select(models.Contract).where(models.Contract.id == id))
+    contract = result.scalars().first()
+
+    if contract is None:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    order_document_response = {
+        "id": contract.id,
+        "title": contract.object,
+        "label": contract.current_stage,
+        "type": {"name": contract.order_type if contract.order_type else "No type"},  # handle None case
+        "attachment": contract.document if contract.document else "No attachment",
+        "document": contract.document
+    }
+
+    return order_document_response
+
+
+def get_contract(id, db):
+    result = db.execute(select(models.Contract).where(models.Contract.id == id))
+    contract = result.scalars().first()
+
+    if contract is None:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    contract_response = {
+        "order": {
+            "id": contract.id,
+            "object": contract.object,
+            "order_type": contract.order_type,
+            "tariff_type": contract.tariff_type,
+            "square": contract.square,
+            "location": contract.location
+        },
+        "status": {
+            "id": contract.id,
+            "title": contract.current_stage,
+            "document": contract.document,
+            "name": contract.current_stage
+        },
+        "stage": contract.work_statuses[0] if contract.work_statuses else "No stage",  # handle empty list case
+        "reward": contract.revenue
+    }
+
+    return contract_response
+
+
+def get_invited_partner(id, db):
+    result = db.execute(select(models.User).where(models.User.id == id))
+    user = result.scalars().first()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    invited_partner_response = {
+        "id": user.id,
+        "data": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "patronymic": user.patronymic,
+            "phone": user.phone,
+            "email": user.email,
+            "role": user.user_type,
+            "avatar": user.avatar,
+            "passport_status": user.is_verified
+        },
+        "reward": -10000
+    }
+
+    return invited_partner_response
+
+
+def get_profile_notification(id, db):
+    result = db.execute(select(models.Notification).where(models.Notification.id == id))
+    notification = result.scalars().first()
+
+    if notification is None:
+        raise HTTPException(status_code=404, detail="Notification not found")
+
+    profile_notification_response = {
+        "id": notification.id,
+        "title": notification.title,
+        "date": notification.date,
+        "label": notification.label
+    }
+
+    return profile_notification_response
+
+
+def get_support_category(id, db):
+    result = db.execute(select(models.FAQ).where(models.FAQ.id == id))
+    faq = result.scalars().first()
+
+    if faq is None:
+        raise HTTPException(status_code=404, detail="FAQ not found")
+
+    support_category_response = {
+        "heading": faq.heading,
+        "date": faq.date,
+        "key_word": faq.key_word
+    }
+
+    return support_category_response
