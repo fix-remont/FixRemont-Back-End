@@ -589,6 +589,20 @@ def get_work_status(id, db):
     return work_status_response
 
 
+def create_work_status(work_status, db):
+    new_work_status = models.WorkStatus(
+        title=work_status.title,
+        status=work_status.status,
+        document=work_status.document
+    )
+
+    db.add(new_work_status)
+    db.commit()
+    db.refresh(new_work_status)
+
+    return new_work_status
+
+
 def get_estimate(id, db):
     result = db.execute(select(models.Contract).where(models.Contract.id == id))
     estimate = result.scalars().first()
@@ -690,6 +704,7 @@ def create_notification(notification, db):
 
     return new_notification
 
+
 def get_contract(id, db):
     result = db.execute(select(models.Contract).where(models.Contract.id == id))
     contract = result.scalars().first()
@@ -788,5 +803,3 @@ def get_project_type_by_id(db, id):
     result = db.execute(select(models.ProjectType).where(models.ProjectType.id == id))
     project_type = result.scalars().first()
     return project_type
-
-

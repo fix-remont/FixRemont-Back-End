@@ -231,7 +231,7 @@ class OrderDocumentsSchema(BaseModel):
     title: str
     label: str
     type: ContractNotificationStatusEnum
-    attachment: Optional[str]
+    attachment: Optional[bytes]
 
     class Config:
         orm_mode = True

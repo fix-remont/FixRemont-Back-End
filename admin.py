@@ -89,7 +89,7 @@
 #     async def on_model_change(self, data, model, is_created, request):
 #         if is_created:
 #             if not data.get('hashed_password'):
-#                 raise ValueError("Password cannot be None")
+#                 raise ValueВложение отсутствует("Password cannot be None")
 #             model.hashed_password = get_password_hash(data['hashed_password'])
 #             model.user_type = db.query(UserType).filter_by(name=data['user_type']).first()
 #         return Future().set_result(None)
@@ -133,7 +133,7 @@
 #                 f'<img src="data:image/png;base64,{image}" width="100" />'
 #                 for image in m.images
 #             )
-#         ) if m.images else 'ERROR'
+#         ) if m.images else 'Вложение отсутствует'
 #     }
 #
 #     column_formatters = {
@@ -142,7 +142,7 @@
 #                 f'<img src="data:image/png;base64,{image}" width="100" />'
 #                 for image in m.images
 #             )
-#         ) if m.images else 'ERROR'
+#         ) if m.images else 'Вложение отсутствует'
 #     }
 #
 #     async def on_model_change(self, data, model, is_created, request):
@@ -189,7 +189,7 @@
 #                 f'<img src="data:image/png;base64,{image}" width="100" />'
 #                 for image in m.images
 #             )
-#         ) if m.images else 'ERROR'
+#         ) if m.images else 'Вложение отсутствует'
 #     }
 #
 #     column_formatters_detail = {
@@ -198,7 +198,7 @@
 #                 f'<img src="data:image/png;base64,{image}" width="100" />'
 #                 for image in m.images
 #             )
-#         ) if m.images else 'ERROR'
+#         ) if m.images else 'Вложение отсутствует'
 #     }
 #
 #     async def on_model_change(self, data, model, is_created, request):
@@ -246,13 +246,13 @@
 #     column_formatters_detail = {
 #         'attachment': lambda m, p: Markup(
 #             f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>'
-#         ) if m.attachment else 'ERROR'
+#         ) if m.attachment else 'Вложение отсутствует'
 #     }
 #
 #     column_formatters = {
 #         'attachment': lambda m, p: Markup(
 #             f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>'
-#         ) if m.attachment else 'ERROR'
+#         ) if m.attachment else 'Вложение отсутствует'
 #     }
 #
 #     async def on_model_change(self, data, model, is_created, request):
@@ -377,7 +377,7 @@
 
 from asyncio import Future
 from sqladmin.fields import FileField
-from src.database.cruds import create_post, create_portfolio_post, get_project_type_by_id, create_notification
+from src.database.cruds import create_post, create_portfolio_post, get_project_type_by_id, create_notification, create_work_status
 import base64
 from markupsafe import Markup
 from src.database import schemas
@@ -386,7 +386,7 @@ from src.database.models import User, Flat, Style, AdditionalOption, Tariff, Con
     ProjectType, PostType, UserType, NotificationType, Paragraph, FAQ, WorkStatus, PlatformNews, \
     ContractNotificationStatus
 from src.auth.auth_routes import get_password_hash
-from wtforms import SelectField
+from wtforms import SelectField, RadioField, BooleanField
 from sqladmin import ModelView
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -484,20 +484,20 @@ class PostAdmin(ModelView, model=Post):
 
     column_formatters_detail = {
         'image1': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'Вложение отсутствует',
         'image2': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'Вложение отсутствует',
         'image3': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'Вложение отсутствует',
     }
 
     column_formatters = {
         'image1': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'Вложение отсутствует',
         'image2': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'Вложение отсутствует',
         'image3': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'Вложение отсутствует',
     }
 
     async def on_model_change(self, data, model, is_created, request):
@@ -557,28 +557,28 @@ class WorkAdmin(ModelView, model=Work):
 
     column_formatters = {
         'image1': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'Вложение отсутствует',
         'image2': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'Вложение отсутствует',
         'image3': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'Вложение отсутствует',
         'image4': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image4}" width="100" />') if m.image4 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image4}" width="100" />') if m.image4 else 'Вложение отсутствует',
         'image5': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image5}" width="100" />') if m.image5 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image5}" width="100" />') if m.image5 else 'Вложение отсутствует',
     }
 
     column_formatters_detail = {
         'image1': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image1}" width="100" />') if m.image1 else 'Вложение отсутствует',
         'image2': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'Вложение отсутствует',
         'image3': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'Вложение отсутствует',
         'image4': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image4}" width="100" />') if m.image4 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image4}" width="100" />') if m.image4 else 'Вложение отсутствует',
         'image5': lambda m, p: Markup(
-            f'<img src="data:image/png;base64,{m.image5}" width="100" />') if m.image5 else 'ERROR',
+            f'<img src="data:image/png;base64,{m.image5}" width="100" />') if m.image5 else 'Вложение отсутствует',
     }
 
     async def on_model_change(self, data, model, is_created, request):
@@ -612,7 +612,7 @@ class WorkAdmin(ModelView, model=Work):
 
 class NotificationAdmin(ModelView, model=Notification):
     name = "Уведомление"
-    name_plural = "! [BUG] Уведомления"
+    name_plural = ". Уведомления"
     icon = "fa-solid fa-bell"
     column_list = [Notification.notification_status, Notification.title, Notification.date, Notification.attachment,
                    Notification.contract_id, Notification.user_id]
@@ -629,38 +629,38 @@ class NotificationAdmin(ModelView, model=Notification):
 
     column_formatters_detail = {
         'attachment': lambda m, p: Markup(
-            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'ERROR'
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'Вложение отсутствует'
     }
 
     column_formatters = {
         'attachment': lambda m, p: Markup(
-            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'ERROR'
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'Вложение отсутствует'
     }
 
     async def on_model_change(self, data, model, is_created, request):
         if 'attachment' in data:
-            if 'attachment' in data:
-                file = data['attachment']
+            file = data['attachment']
             file_data = await file.read()
             data['attachment'] = file_data
-            notification_data = ""
-            if data['notification_status'] == 'message':
-                notification_data = schemas.OrderNotificationSchema(
-                    id=0,
-                    type=ContractNotificationStatusEnum[data['notification_status']],
-                    title=data['title'],
-                    label=data['label']
-                )
-            elif data['notification_status'] == 'sign_act':
-                notification_data = schemas.OrderDocumentsSchema(
-                    id=0,
-                    type=ContractNotificationStatusEnum[data['notification_status']],
-                    title=data['title'],
-                    label=data['label'],
-                    attachment=data['attachment']
-                )
-            for db_session in get_db():
-                await create_notification(notification_data, db_session)
+
+        if data['notification_status'] == 'message':
+            notification_data = schemas.OrderNotificationSchema(
+                id=0,
+                type=ContractNotificationStatusEnum[data['notification_status']],
+                title=data['title'],
+                label=data['label']
+            )
+        elif data['notification_status'] == 'sign_act':
+            notification_data = schemas.OrderDocumentsSchema(
+                id=0,
+                type=ContractNotificationStatusEnum[data['notification_status']],
+                title=data['title'],
+                label=data['label'],
+                attachment=data['attachment']
+            )
+
+        for db_session in get_db():
+            await create_notification(notification_data, db_session)
 
 
 class FlatAdmin(ModelView, model=Flat):
@@ -694,7 +694,7 @@ class PlatformNewsAdmin(ModelView, model=PlatformNews):
 
 class WorkStatusAdmin(ModelView, model=WorkStatus):
     name = "Статус работы"
-    name_plural = "! Статусы работы"
+    name_plural = ". Статусы работы"
     icon = "fa-solid fa-tasks"
     column_list = [WorkStatus.id, WorkStatus.title, WorkStatus.document, WorkStatus.status, WorkStatus.contract_id]
     column_searchable_list = [WorkStatus.title]
@@ -702,6 +702,37 @@ class WorkStatusAdmin(ModelView, model=WorkStatus):
     can_edit = True
     can_delete = True
     column_labels = dict(id="ID", title="Название", document="Документ", status="Статус", contract_id="ID контракта")
+
+    form_overrides = {
+        'document': FileField,
+        'status': BooleanField # TODO: починить
+    }
+
+    column_formatters_detail = {
+        'document': lambda m, p: Markup(
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.document).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.document else 'Вложение отсутствует'
+    }
+
+    column_formatters = {
+        'document': lambda m, p: Markup(
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.document).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.document else 'Вложение отсутствует'
+    }
+
+    async def on_model_change(self, data, model, is_created, request):
+        if 'document' in data:
+            file = data['document']
+            file_data = await file.read()
+            data['document'] = file_data
+
+        work_status_data = schemas.WorkStateSchema(
+            id=0,
+            title=data['title'],
+            document=data['document'],
+            status=data['status']
+        )
+
+        for db_session in get_db():
+            await create_work_status(work_status_data, db_session)
 
 
 class AdditionalOptionAdmin(ModelView, model=AdditionalOption):
