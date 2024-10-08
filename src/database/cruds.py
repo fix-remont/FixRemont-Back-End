@@ -675,6 +675,21 @@ def get_order_document(id, db):
     return order_document_response
 
 
+def create_notification(notification, db):
+    new_notification = models.Notification(
+        notification_status=notification.notification_status,
+        title=notification.title,
+        date=notification.date,
+        label=notification.label,
+        attachment=notification.attachment if notification.attachment else "",
+    )
+
+    db.add(new_notification)
+    db.commit()
+    db.refresh(new_notification)
+
+    return new_notification
+
 def get_contract(id, db):
     result = db.execute(select(models.Contract).where(models.Contract.id == id))
     contract = result.scalars().first()

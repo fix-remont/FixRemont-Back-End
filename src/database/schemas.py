@@ -24,6 +24,10 @@ class PostTypeEnum(str, Enum):
     news = 'Новость'
     blog = 'Блог'
 
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
 
 class TariffTypeEnum(str, Enum):
     base = 'Базовый'
@@ -213,7 +217,7 @@ class OrderClientInfoSchema(BaseModel):
 
 class OrderNotificationSchema(BaseModel):
     id: int
-    type: NotificationTypeSchema
+    type: ContractNotificationStatusEnum
     title: str
     label: Optional[str]
 
@@ -226,7 +230,7 @@ class OrderDocumentsSchema(BaseModel):
     id: int
     title: str
     label: str
-    type: NotificationTypeSchema
+    type: ContractNotificationStatusEnum
     attachment: Optional[str]
 
     class Config:

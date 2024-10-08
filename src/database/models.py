@@ -192,6 +192,9 @@ class ContractNotificationStatus(enum.Enum):
     sign_act = 'Подписать акт'
     message = 'Сообщение'
 
+    def __str__(self):
+        return self.name
+
 
 class Contract(Base):
     __tablename__ = "contracts"
