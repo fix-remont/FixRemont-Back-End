@@ -799,7 +799,7 @@ class FAQAdmin(ModelView, model=FAQ):
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(id="ID", title="Вопрос", label="Ответ")
+    column_labels = dict(id="ID", title="Вопрос", label="Ответ", heading="Заголовок", date="Дата", key_word="Ключевое слово (тег)")
 
 
 class ProjectTypeAdmin(ModelView, model=ProjectType):
