@@ -618,14 +618,16 @@ class NotificationAdmin(ModelView, model=Notification):
     name = "Уведомление"
     name_plural = "Уведомления"
     icon = "fa-solid fa-bell"
-    column_list = [Notification.notification_status, Notification.title, Notification.date, Notification.attachment,
-                   Notification.contract_id, Notification.user_id]
-    column_searchable_list = [Notification.title]
+    column_list = [Notification.notification_status, Notification.title, Notification.label, Notification.date,
+                   Notification.attachment, Notification.contract_id, Notification.user_id]
+    column_searchable_list = [Notification.title, Notification.date]
+    column_sortable_list = [Notification.notification_status, Notification.title, Notification.date]
     can_create = True
     can_edit = True
     can_delete = True
     column_labels = dict(notification_status="Статус уведомления", title="Заголовок", date="Дата",
-                         attachment="Вложение", contract_id="ID контракта", user_id="ID пользователя")
+                         attachment="Вложение", contract_id="ID контракта", user_id="ID пользователя",
+                         label="Содержание", id="ID", contract="Контракт", user="Пользователь")
 
     form_overrides = {
         'attachment': FileField
@@ -633,12 +635,14 @@ class NotificationAdmin(ModelView, model=Notification):
 
     column_formatters_detail = {
         'attachment': lambda m, p: Markup(
-            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'Вложение отсутствует'
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'Вложение отсутствует',
+        'notification_status': lambda m, p: m.notification_status.value
     }
 
     column_formatters = {
         'attachment': lambda m, p: Markup(
-            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'Вложение отсутствует'
+            f'<a href="data:application/pdf;base64,{base64.b64encode(m.attachment).decode("utf-8")}" download="attachment.pdf">Скачать PDF</a>') if m.attachment else 'Вложение отсутствует',
+        'notification_status': lambda m, p: m.notification_status.value
     }
 
     async def on_model_change(self, data, model, is_created, request):
@@ -802,7 +806,8 @@ class FAQAdmin(ModelView, model=FAQ):
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(id="ID", title="Вопрос", label="Ответ", heading="Заголовок", date="Дата", key_word="Ключевое слово (тег)")
+    column_labels = dict(id="ID", title="Вопрос", label="Ответ", heading="Заголовок", date="Дата",
+                         key_word="Ключевое слово (тег)")
 
 
 class ProjectTypeAdmin(ModelView, model=ProjectType):
