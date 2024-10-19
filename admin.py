@@ -439,7 +439,7 @@ class UserAdmin(ModelView, model=User):
         "email": {'placeholder': "Введите email пользователя"},
         "hashed_password": {'placeholder': "Введите пароль пользователя"},
     }
-
+    # TODO: не сохраняется пароль
     async def on_model_change(self, data, model, is_created, request):
         if is_created:
             if not data.get('hashed_password'):
