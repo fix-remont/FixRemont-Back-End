@@ -104,6 +104,9 @@ class Post(Base):
     image2 = Column(String)
     image3 = Column(String)
 
+    def __str__(self):
+        return self.title
+
 
 # class FAQ: DONE
 # id = int

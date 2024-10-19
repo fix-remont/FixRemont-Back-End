@@ -700,8 +700,9 @@ class WorkStatusAdmin(ModelView, model=WorkStatus):
     name = "Статус работы"
     name_plural = "Статусы работы"
     icon = "fa-solid fa-tasks"
-    column_list = [WorkStatus.id, WorkStatus.title, WorkStatus.document, WorkStatus.status, WorkStatus.contract_id]
+    column_list = [WorkStatus.title, WorkStatus.document, WorkStatus.status, WorkStatus.contract]
     column_searchable_list = [WorkStatus.title]
+    column_sortable_list = [WorkStatus.id, WorkStatus.title, WorkStatus.status]
     can_create = True
     can_edit = True
     can_delete = True
@@ -782,20 +783,22 @@ class ParagraphAdmin(ModelView, model=Paragraph):
     name = "Параграф"
     name_plural = "Параграфы"
     icon = "fa-solid fa-paragraph"
-    column_list = [Paragraph.id, Paragraph.title, Paragraph.body]
-    column_searchable_list = [Paragraph.title]
+    column_list = [Paragraph.title, Paragraph.post, Paragraph.body]
+    column_searchable_list = [Paragraph.title, Paragraph.post]
+    column_sortable_list = [Paragraph.title]
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(id="ID", title="Заголовок", body="Содержание")
+    column_labels = dict(id="ID", title="Заголовок", body="Содержание", post_id="ID поста", post="Пост")
 
 
 class FAQAdmin(ModelView, model=FAQ):
     name = "Часто задаваемый вопрос"
     name_plural = "Часто задаваемые вопросы"
     icon = "fa-solid fa-question"
-    column_list = [FAQ.id, FAQ.heading, FAQ.label]
+    column_list = [FAQ.heading, FAQ.label, FAQ.date, FAQ.key_word]
     column_searchable_list = [FAQ.heading]
+    column_sortable_list = [FAQ.heading, FAQ.label, FAQ.date, FAQ.key_word]
     can_create = True
     can_edit = True
     can_delete = True
