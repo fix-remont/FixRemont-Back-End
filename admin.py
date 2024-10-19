@@ -549,7 +549,8 @@ class WorkAdmin(ModelView, model=Work):
     column_labels = dict(title="Заголовок", project_type="Тип проекта", deadline="Дедлайн", cost="Стоимость",
                          square="Площадь", task="Задача", description="Описание", image1="Изображение 1",
                          image2="Изображение 2", image3="Изображение 3", image4="Изображение 4", image5="Изображение 5",
-                         video_link="Ссылка на видео", video_duration="Длительность видео")
+                         video_link="Ссылка на видео", video_duration="Длительность видео", id="ID",
+                         project_type_id="Тип проекта")
 
     form_overrides = {
         'image1': FileField,
@@ -570,6 +571,15 @@ class WorkAdmin(ModelView, model=Work):
             f'<img src="data:image/png;base64,{m.image4}" width="100" />') if m.image4 else 'Вложение отсутствует',
         'image5': lambda m, p: Markup(
             f'<img src="data:image/png;base64,{m.image5}" width="100" />') if m.image5 else 'Вложение отсутствует',
+        'project_type_id': lambda m, p: m.project_type.name,
+        'description': lambda m, p: Markup(
+            ''.join(
+                f'<b>{article.split(':')[0]}</b> <br> <p>{article.split(':')[1]}</p>'
+                for article in m.description
+            ) if m.description else 'Описание отсутствует'),
+        'task': lambda m, p: Markup(
+            f'<p>{m.task[:30]}...</p>' if len(m.task) > 30 else f'<p>{m.task}</p>'
+        )
     }
 
     column_formatters_detail = {
@@ -583,6 +593,31 @@ class WorkAdmin(ModelView, model=Work):
             f'<img src="data:image/png;base64,{m.image4}" width="100" />') if m.image4 else 'Вложение отсутствует',
         'image5': lambda m, p: Markup(
             f'<img src="data:image/png;base64,{m.image5}" width="100" />') if m.image5 else 'Вложение отсутствует',
+        'project_type_id': lambda m, p: m.project_type.name,
+        'description': lambda m, p: Markup(
+            ''.join(
+                f'<b>{article.split(':')[0]}</b> <br> <p>{article.split(':')[1]}</p>'
+                for article in m.description
+            ) if m.description else 'Описание отсутствует'),
+
+        'task': lambda m, p: Markup(
+            f'<p style="display: inline-block; max-width: 300px; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; margin: 0; padding: 0;" id="task-{m.id}">{m.task}</p>'
+            f'<script>'
+            f'  const taskElement = document.getElementById("task-{m.id}");'
+            f'  let text = taskElement.innerText;'
+            f'  let breakPoint = 70;'
+            f'  while (breakPoint < text.length) {{'
+            f'    const spaceIndex = text.lastIndexOf(" ", breakPoint);'
+            f'    if (spaceIndex !== -1) {{'
+            f'      text = text.slice(0, spaceIndex) + "<wbr>" + text.slice(spaceIndex + 1);'
+            f'      breakPoint = spaceIndex + 71;'
+            f'    }} else {{'
+            f'      breakPoint += 70;'
+            f'    }}'
+            f'  }}'
+            f'  taskElement.innerHTML = text;'
+            f'</script>'
+        )
     }
 
     async def on_model_change(self, data, model, is_created, request):
