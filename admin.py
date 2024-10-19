@@ -463,7 +463,7 @@ class ContractAdmin(ModelView, model=Contract):
     column_labels = dict(id="ID", object="Объект", order_type="Тип заказа", tariff_type="Тариф", square="Площадь",
                          location="Местоположение", current_stage="Текущий этап", total_cost="Общая стоимость",
                          materials_cost="Стоимость материалов", work_cost="Стоимость работы", revenue="Доход",
-                         client_id="ID клиента", date="Дата", notifications="Уведомления", document="Документ")
+                         client_id="ID клиента", date="Дата", notifications="Уведомления", document="Документ", work_statuses="Статусы работ", client="Клиент")
 
 
 class PostAdmin(ModelView, model=Post):
@@ -478,7 +478,7 @@ class PostAdmin(ModelView, model=Post):
     can_edit = True
     can_delete = True
     column_labels = dict(title="Заголовок", post_type="Тип поста", paragraphs="Параграфы", image1="Изображение 1",
-                         image2="Изображение 2", image3="Изображение 3")
+                         image2="Изображение 2", image3="Изображение 3", id="ID", post_type_id="Тип поста")
 
     form_overrides = {
         'image1': FileField,
@@ -493,6 +493,8 @@ class PostAdmin(ModelView, model=Post):
             f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'Вложение отсутствует',
         'image3': lambda m, p: Markup(
             f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'Вложение отсутствует',
+        'post_type': lambda m, p: m.post_type.value,
+
     }
 
     column_formatters = {
@@ -502,6 +504,7 @@ class PostAdmin(ModelView, model=Post):
             f'<img src="data:image/png;base64,{m.image2}" width="100" />') if m.image2 else 'Вложение отсутствует',
         'image3': lambda m, p: Markup(
             f'<img src="data:image/png;base64,{m.image3}" width="100" />') if m.image3 else 'Вложение отсутствует',
+        'post_type': lambda m, p: m.post_type.value,
     }
 
     async def on_model_change(self, data, model, is_created, request):
