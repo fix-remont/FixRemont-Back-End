@@ -216,6 +216,9 @@ class Contract(Base):
     notifications = relationship("Notification", back_populates="contract")
     document = Column(LargeBinary)
 
+    def __str__(self):
+        return self.object
+
 
 class Notification(Base):
     __tablename__ = "notifications"

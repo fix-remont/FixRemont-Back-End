@@ -439,6 +439,7 @@ class UserAdmin(ModelView, model=User):
         "email": {'placeholder': "Введите email пользователя"},
         "hashed_password": {'placeholder': "Введите пароль пользователя"},
     }
+
     # TODO: не сохраняется пароль
     async def on_model_change(self, data, model, is_created, request):
         if is_created:
@@ -704,7 +705,8 @@ class WorkStatusAdmin(ModelView, model=WorkStatus):
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(id="ID", title="Название", document="Документ", status="Статус", contract_id="ID контракта")
+    column_labels = dict(id="ID", title="Название", document="Документ", status="Статус", contract_id="ID контракта",
+                         contract="Контракт")
 
     form_overrides = {
         'document': FileField
