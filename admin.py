@@ -814,4 +814,4 @@ class ProjectTypeAdmin(ModelView, model=ProjectType):
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(name="Название")
+    column_labels = dict(name="Название", works="Работы", works_id="ID работы", id="ID")

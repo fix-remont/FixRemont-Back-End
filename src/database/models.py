@@ -70,6 +70,9 @@ class Work(Base):
     video_link = Column(String)
     video_duration = Column(String)
 
+    def __str__(self):
+        return self.title
+
 
 # класс Параграф DONE
 # title = str
