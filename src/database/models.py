@@ -180,7 +180,7 @@ class WorkStatus(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     document = Column(LargeBinary)
-    status = Column(Boolean)
+    status = Column(Boolean, default=False)
     contract_id = Column(Integer, ForeignKey('contracts.id'))
     contract = relationship("Contract", back_populates="work_statuses")
 

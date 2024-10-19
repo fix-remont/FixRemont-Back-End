@@ -1,6 +1,8 @@
 from fastapi import HTTPException
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.auth.auth_routes import get_password_hash
 from src.database import models
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -803,3 +805,13 @@ def get_project_type_by_id(db, id):
     result = db.execute(select(models.ProjectType).where(models.ProjectType.id == id))
     project_type = result.scalars().first()
     return project_type
+
+def create_user(user: schemas.UserSchema, db: AsyncSession):
+    print("Got here")
+    print(user.hashed_password)
+    hashed_password = get_password_hash(user.password)
+    db_user = models.User(email=user.email, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user

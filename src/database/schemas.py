@@ -279,6 +279,7 @@ class SupportCategorySchema(BaseModel):
         orm_mode = True
         from_attributes = True
 
+
 # class FAQSchema(BaseModel):
 #     title: str
 #     label: str
@@ -367,3 +368,21 @@ class SupportCategorySchema(BaseModel):
 #
 #     class Config:
 #         orm_mode = True
+class UserSchema(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    patronymic: Optional[str] = None
+    hashed_password: str
+    phone: Optional[str] = None
+    user_type_id: Optional[int] = None
+    user_referral_code: str = Field(default_factory=lambda: ''.join(
+        random.choices(string.ascii_uppercase + string.digits, k=16)))
+    others_referral_code: Optional[str] = None
+    notification_status_id: Optional[int] = None
+    is_verified: bool = False
+    is_superuser: bool = False
+    avatar: Optional[str] = None
+
+    class Config:
+        orm_mode = True

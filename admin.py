@@ -377,10 +377,11 @@
 
 from asyncio import Future
 from sqladmin.fields import FileField
-from src.database.cruds import create_post, create_portfolio_post, get_project_type_by_id, create_notification, create_work_status
+from src.database.cruds import create_post, create_portfolio_post, get_project_type_by_id, create_notification, \
+    create_work_status, create_user
 import base64
 from markupsafe import Markup
-from src.database import schemas
+from src.database import schemas, models
 from src.database.db import get_db
 from src.database.models import User, Flat, Style, AdditionalOption, Tariff, Contract, Post, Work, Notification, \
     ProjectType, PostType, UserType, NotificationType, Paragraph, FAQ, WorkStatus, PlatformNews, \
@@ -409,7 +410,7 @@ async def get_all_model_values(db: AsyncSession, model):
 
 class UserAdmin(ModelView, model=User):
     name = "Пользователь"
-    name_plural = "! !Пользователи"
+    name_plural = "Пользователи [BUG]"
     icon = "fa-solid fa-user-tie"
     column_list = [User.email, User.name, User.surname, User.phone, User.user_type, User.notification_status,
                    User.notifications]
@@ -450,21 +451,23 @@ class UserAdmin(ModelView, model=User):
 
 class ContractAdmin(ModelView, model=Contract):
     name = "Контракт"
-    name_plural = "! Контракты"
+    name_plural = "Контракты"
     icon = "fa-solid fa-file-signature"
     column_list = [Contract.id, Contract.object, Contract.tariff_type, Contract.location, Contract.total_cost,
-                   Contract.current_stage, Contract.client_id]
+                   Contract.current_stage, Contract.client_id, Contract.date]
     column_searchable_list = [Contract.object]
     can_create = True
     can_edit = True
     can_delete = True
-    column_labels = dict(object="Объект", tariff_type="Тариф", location="Местоположение", total_cost="Общая стоимость",
-                         current_stage="Текущий этап", client_id="ID пользователя")
+    column_labels = dict(id="ID", object="Объект", order_type="Тип заказа", tariff_type="Тариф", square="Площадь",
+                         location="Местоположение", current_stage="Текущий этап", total_cost="Общая стоимость",
+                         materials_cost="Стоимость материалов", work_cost="Стоимость работы", revenue="Доход",
+                         client_id="ID клиента", date="Дата", notifications="Уведомления", document="Документ")
 
 
 class PostAdmin(ModelView, model=Post):
     name = "Пост"
-    name_plural = ". Посты"
+    name_plural = "Посты"
     icon = "fa-solid fa-newspaper"
     column_list = [Post.title, Post.post_type, Post.paragraphs, Post.image1, Post.image2, Post.image3]
     column_searchable_list = [Post.title]
@@ -531,7 +534,7 @@ class PostAdmin(ModelView, model=Post):
 
 class WorkAdmin(ModelView, model=Work):
     name = "Портфолио"
-    name_plural = ". Портфолио"
+    name_plural = "Портфолио"
     icon = "fa-solid fa-building-circle-check"
     column_list = [Work.title, Work.project_type, Work.deadline, Work.cost, Work.square, Work.task, Work.description,
                    Work.image1, Work.image2, Work.image3, Work.image4, Work.image5, Work.video_link,
@@ -603,7 +606,7 @@ class WorkAdmin(ModelView, model=Work):
             video_duration=data.get('video_duration'),
             pictures=[data.get('image1'), data.get('image2'), data.get('image3'), data.get('image4'),
                       data.get('image5')],
-            articles=articles  # TODO: не сохраняются в бд
+            articles=articles
         )
         print(work_data)
         for db_session in get_db():
@@ -612,7 +615,7 @@ class WorkAdmin(ModelView, model=Work):
 
 class NotificationAdmin(ModelView, model=Notification):
     name = "Уведомление"
-    name_plural = ". Уведомления"
+    name_plural = "Уведомления"
     icon = "fa-solid fa-bell"
     column_list = [Notification.notification_status, Notification.title, Notification.date, Notification.attachment,
                    Notification.contract_id, Notification.user_id]
@@ -682,7 +685,7 @@ class FlatAdmin(ModelView, model=Flat):
 
 class PlatformNewsAdmin(ModelView, model=PlatformNews):
     name = "Новости платформы"
-    name_plural = ". Новости платформы"
+    name_plural = "Новости платформы"
     icon = "fa-solid fa-newspaper"
     column_list = [PlatformNews.id, PlatformNews.title, PlatformNews.date, PlatformNews.label]
     column_searchable_list = [PlatformNews.title]
@@ -694,7 +697,7 @@ class PlatformNewsAdmin(ModelView, model=PlatformNews):
 
 class WorkStatusAdmin(ModelView, model=WorkStatus):
     name = "Статус работы"
-    name_plural = ". Статусы работы"
+    name_plural = "Статусы работы"
     icon = "fa-solid fa-tasks"
     column_list = [WorkStatus.id, WorkStatus.title, WorkStatus.document, WorkStatus.status, WorkStatus.contract_id]
     column_searchable_list = [WorkStatus.title]
@@ -704,8 +707,7 @@ class WorkStatusAdmin(ModelView, model=WorkStatus):
     column_labels = dict(id="ID", title="Название", document="Документ", status="Статус", contract_id="ID контракта")
 
     form_overrides = {
-        'document': FileField,
-        'status': BooleanField # TODO: починить
+        'document': FileField
     }
 
     column_formatters_detail = {
@@ -776,7 +778,7 @@ class TariffAdmin(ModelView, model=Tariff):
 
 class ParagraphAdmin(ModelView, model=Paragraph):
     name = "Параграф"
-    name_plural = ". Параграфы"
+    name_plural = "Параграфы"
     icon = "fa-solid fa-paragraph"
     column_list = [Paragraph.id, Paragraph.title, Paragraph.body]
     column_searchable_list = [Paragraph.title]
@@ -788,7 +790,7 @@ class ParagraphAdmin(ModelView, model=Paragraph):
 
 class FAQAdmin(ModelView, model=FAQ):
     name = "Часто задаваемый вопрос"
-    name_plural = ". Часто задаваемые вопросы"
+    name_plural = "Часто задаваемые вопросы"
     icon = "fa-solid fa-question"
     column_list = [FAQ.id, FAQ.heading, FAQ.label]
     column_searchable_list = [FAQ.heading]
@@ -800,7 +802,7 @@ class FAQAdmin(ModelView, model=FAQ):
 
 class ProjectTypeAdmin(ModelView, model=ProjectType):
     name = "Тип проекта"
-    name_plural = ". Типы проектов"
+    name_plural = "Типы проектов"
     icon = "fa-solid fa-building"
     column_list = [ProjectType.name]
     column_searchable_list = [ProjectType.name]
