@@ -160,6 +160,7 @@ class WorkStateSchema(BaseModel):
     id: int
     title: str
     status: bool
+    current: bool
     document: Optional[bytes]
 
     class Config:
@@ -240,9 +241,10 @@ class OrderDocumentsSchema(BaseModel):
 
 class ContractsSchema(BaseModel):
     order: OrderInfoSchema
-    status: NotificationTypeSchema
+    status: WorkStatusSchema
     stage: str
     reward: int
+    user_id: int
 
     class Config:
         orm_mode = True

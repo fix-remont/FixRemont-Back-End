@@ -190,7 +190,7 @@ async def get_order_document(id: int = Path(...), db: AsyncSession = Depends(get
 
 @router.get("/contracts/{id}", response_model=ContractsSchema, tags=["GET"])
 async def get_contract(id: int = Path(...), db: AsyncSession = Depends(get_db)):
-    return cruds.get_contract(id, db)
+    return await cruds.get_contract(id, db)
 
 
 @router.get("/invited_partners/{id}", response_model=InvitedPartnersSchema, tags=["GET"])

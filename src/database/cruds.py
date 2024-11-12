@@ -250,26 +250,21 @@ async def create_work_state(work_state: schemas.WorkStateSchema, db: AsyncSessio
 
 
 async def get_work_statuses(db: AsyncSession):
-    result = db.execute(select(models.Contract))
+    result = db.execute(select(models.WorkStatus))
     all_work_statuses = result.scalars().all()
 
-    states_by_contract_id = defaultdict(list)
+    work_statuses = []
 
     for work_status in all_work_statuses:
-        for state in work_status.work_statuses:
-            if state.contract_id:
-                states_by_contract_id[state.contract_id].append({
-                    "id": state.id,
-                    "title": state.title,
-                    "status": state.status,
-                    "document": state.document
-                })
+        work_statuses.append({
+            "id": work_status.id,
+            "title": work_status.title,
+            "status": work_status.status,
+            "document": work_status.document,
+            "contract_id": work_status.contract_id
+        })
 
-    # Convert defaultdict to a list of dictionaries
-    states_by_contract_id_list = [{"id": contract_id, "states": states}
-                                  for i, (contract_id, states) in enumerate(states_by_contract_id.items())]
-
-    return states_by_contract_id_list
+    return work_statuses
 
 
 async def get_estimates(db: AsyncSession):
@@ -363,26 +358,38 @@ async def get_contracts(db: AsyncSession):
     result = db.execute(select(models.Contract))
     all_contracts = result.scalars().all()
 
+    work_statuses = await get_work_statuses(db)
+
     contracts = []
 
     for contract in all_contracts:
+        contract_statuses = [
+            {
+                "id": state["id"],
+                "title": state["title"],
+                "status": state["status"],
+                "document": state["document"],
+                "current": state["current"] if "current" in state else False  # Add current field
+            }
+            for state in work_statuses if state["contract_id"] == contract.id
+        ]
+
         contracts.append({
             "order": {
                 "id": contract.id,
                 "object": contract.object,
-                "order_type": contract.order_type,
-                "tariff_type": contract.tariff_type,
-                "square": contract.square,
+                "type": contract.order_type,
+                "tariff": contract.tariff_type,
+                "area": contract.square,
                 "location": contract.location
             },
             "status": {
                 "id": contract.id,
-                "title": contract.current_stage,
-                "document": contract.document,
-                "name": contract.current_stage
+                "states": contract_statuses
             },
-            "stage": contract.work_statuses[0] if contract.work_statuses else "No stage",  # handle empty list case
-            "reward": contract.revenue
+            "stage": contract.work_statuses[0].title if contract.work_statuses else "No stage",
+            "reward": contract.revenue,
+            "user_id": contract.client_id
         })
 
     return contracts
@@ -707,30 +714,42 @@ def create_notification(notification, db):
     return new_notification
 
 
-def get_contract(id, db):
+async def get_contract(id: int, db: AsyncSession):
     result = db.execute(select(models.Contract).where(models.Contract.id == id))
     contract = result.scalars().first()
 
     if contract is None:
         raise HTTPException(status_code=404, detail="Contract not found")
 
+    work_statuses = await get_work_statuses(db)
+
+    contract_statuses = [
+        {
+            "id": state["id"],
+            "title": state["title"],
+            "status": state["status"],
+            "document": state["document"],
+            "current": state["current"] if "current" in state else False
+        }
+        for state in work_statuses if state["contract_id"] == contract.id
+    ]
+
     contract_response = {
         "order": {
             "id": contract.id,
             "object": contract.object,
-            "order_type": contract.order_type,
-            "tariff_type": contract.tariff_type,
-            "square": contract.square,
+            "type": contract.order_type,
+            "tariff": contract.tariff_type,
+            "area": contract.square,
             "location": contract.location
         },
         "status": {
             "id": contract.id,
-            "title": contract.current_stage,
-            "document": contract.document,
-            "name": contract.current_stage
+            "states": contract_statuses
         },
-        "stage": contract.work_statuses[0] if contract.work_statuses else "No stage",  # handle empty list case
-        "reward": contract.revenue
+        "stage": contract.work_statuses[0].title if contract.work_statuses else "No stage",
+        "reward": contract.revenue,
+        "user_id": contract.client_id
     }
 
     return contract_response
@@ -805,6 +824,7 @@ def get_project_type_by_id(db, id):
     result = db.execute(select(models.ProjectType).where(models.ProjectType.id == id))
     project_type = result.scalars().first()
     return project_type
+
 
 def create_user(user: schemas.UserSchema, db: AsyncSession):
     print("Got here")

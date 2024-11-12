@@ -412,7 +412,7 @@ class UserAdmin(ModelView, model=User):
     name = "Пользователь"
     name_plural = "Пользователи [BUG]"
     icon = "fa-solid fa-user-tie"
-    column_list = [User.email, User.name, User.surname, User.phone, User.user_type, User.notification_status,
+    column_list = [User.email, User.name, User.surname, User.patronymic, User.phone, User.user_type, User.notification_status,
                    User.notifications]
     column_searchable_list = [User.email, User.name, User.surname, User.user_type]
     column_filters = [User.user_type]
@@ -422,10 +422,10 @@ class UserAdmin(ModelView, model=User):
                          notification_status="Статус уведомлений", user_referral_code="Реферальный код пользователя",
                          others_referral_code="Сторонний реферальный код", is_active="Активен",
                          is_superuser="Является админом", contracts="Контракты", hashed_password="Пароль",
-                         notifications="Уведомления")
-    form_edit_rules = ['name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code',
+                         notifications="Уведомления", patronymic="Отчество")
+    form_edit_rules = ['name', 'surname', 'patronymic', 'phone', 'user_type', 'notification_status', 'user_referral_code',
                        'others_referral_code', 'is_superuser', 'contracts', 'notifications']
-    form_create_rules = ['email', 'name', 'surname', 'phone', 'user_type', 'notification_status', 'user_referral_code',
+    form_create_rules = ['email', 'name', 'surname', 'patronymic', 'phone', 'user_type', 'notification_status', 'user_referral_code',
                          'others_referral_code', 'is_superuser', 'contracts', 'hashed_password']
     can_create = True
     can_edit = True
