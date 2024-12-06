@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.4
--- Dumped by pg_dump version 16.4
+-- Dumped from database version 16.3
+-- Dumped by pg_dump version 16.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -952,6 +952,7 @@ COPY public.user_type (id, name) FROM stdin;
 
 COPY public.users (id, email, hashed_password, name, surname, patronymic, phone, user_type_id, user_referral_code, others_referral_code, notification_status_id, is_verified, is_superuser, avatar) FROM stdin;
 1	user@example.com	$2b$12$8o5NXdPWPbltdij4bCq5IOgYSOXCQUcwzSbMOxwex3EHe7i2WyY..	\N	\N	\N	\N	\N	7H6LE6VYWF2AGH5C	\N	\N	f	t	\N
+30	user1@example.com	$2b$12$FxghtckOjUz4T3FmK2GCWegOlfup8Qen/mANM.HhvOsPLqhqudO5i	1	\N	\N	\N	\N	5SYJF1C324XPRAJA	\N	\N	f	f	\N
 \.
 
 
@@ -1070,7 +1071,7 @@ SELECT pg_catalog.setval('public.user_type_id_seq', 1, false);
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 12, true);
+SELECT pg_catalog.setval('public.users_id_seq', 30, true);
 
 
 --
