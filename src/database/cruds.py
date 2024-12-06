@@ -826,12 +826,27 @@ def get_project_type_by_id(db, id):
     return project_type
 
 
-def create_user(user: schemas.UserSchema, db: AsyncSession):
-    print("Got here")
-    print(user.hashed_password)
-    hashed_password = get_password_hash(user.password)
-    db_user = models.User(email=user.email, hashed_password=hashed_password)
+def create_user(db, user):
+    print("Entering create_user function")
+    db_user = models.User(
+        email=user.email,
+        hashed_password=get_password_hash(user.hashed_password),
+        name=user.name,
+        surname=user.surname,
+        patronymic=user.patronymic,
+        phone=user.phone,
+        user_type_id=user.user_type_id,
+        user_referral_code=user.user_referral_code,
+        others_referral_code=user.others_referral_code,
+        notification_status_id=user.notification_status_id,
+        is_verified=user.is_verified,
+        is_superuser=user.is_superuser,
+        avatar=user.avatar
+    )
+    print("User object created")
+    print(user.hashed_password, "<----")
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    print("User added to the database and committed")
     return db_user

@@ -412,7 +412,8 @@ class UserAdmin(ModelView, model=User):
     name = "Пользователь"
     name_plural = "Пользователи [BUG]"
     icon = "fa-solid fa-user-tie"
-    column_list = [User.email, User.name, User.surname, User.patronymic, User.phone, User.user_type, User.notification_status,
+    column_list = [User.email, User.name, User.surname, User.patronymic, User.phone, User.user_type,
+                   User.notification_status,
                    User.notifications]
     column_searchable_list = [User.email, User.name, User.surname, User.user_type]
     column_filters = [User.user_type]
@@ -423,9 +424,11 @@ class UserAdmin(ModelView, model=User):
                          others_referral_code="Сторонний реферальный код", is_active="Активен",
                          is_superuser="Является админом", contracts="Контракты", hashed_password="Пароль",
                          notifications="Уведомления", patronymic="Отчество")
-    form_edit_rules = ['name', 'surname', 'patronymic', 'phone', 'user_type', 'notification_status', 'user_referral_code',
+    form_edit_rules = ['name', 'surname', 'patronymic', 'phone', 'user_type', 'notification_status',
+                       'user_referral_code',
                        'others_referral_code', 'is_superuser', 'contracts', 'notifications']
-    form_create_rules = ['email', 'name', 'surname', 'patronymic', 'phone', 'user_type', 'notification_status', 'user_referral_code',
+    form_create_rules = ['email', 'name', 'surname', 'patronymic', 'phone', 'user_type', 'notification_status',
+                         'user_referral_code',
                          'others_referral_code', 'is_superuser', 'contracts', 'hashed_password']
     can_create = True
     can_edit = True
@@ -440,14 +443,25 @@ class UserAdmin(ModelView, model=User):
         "hashed_password": {'placeholder': "Введите пароль пользователя"},
     }
 
-    # TODO: не сохраняется пароль
+    # TODO: не сохраняется захешированный пароль
     async def on_model_change(self, data, model, is_created, request):
-        if is_created:
-            if not data.get('hashed_password'):
-                raise ValueError("Password cannot be None")
-            model.hashed_password = get_password_hash(data['hashed_password'])
-            model.user_type = db.query(UserType).filter_by(name=data['user_type']).first()
-        return Future().set_result(None)
+        create_user_data = schemas.UserSchema(
+            email=data['email'],
+            name=data['name'],
+            surname=data['surname'],
+            patronymic=data['patronymic'],
+            hashed_password=data['hashed_password'],
+            phone=data['phone'],
+            user_type=data['user_type'],
+            notification_status=data['notification_status'],
+            user_referral_code=data['user_referral_code'],
+            others_referral_code=data['others_referral_code'],
+            is_superuser=data['is_superuser'],
+
+        )
+        for db_session in db:
+            print("Creating user")
+            await create_user(db_session, create_user_data)
 
 
 class ContractAdmin(ModelView, model=Contract):
@@ -463,7 +477,8 @@ class ContractAdmin(ModelView, model=Contract):
     column_labels = dict(id="ID", object="Объект", order_type="Тип заказа", tariff_type="Тариф", square="Площадь",
                          location="Местоположение", current_stage="Текущий этап", total_cost="Общая стоимость",
                          materials_cost="Стоимость материалов", work_cost="Стоимость работы", revenue="Доход",
-                         client_id="ID клиента", date="Дата", notifications="Уведомления", document="Документ", work_statuses="Статусы работ", client="Клиент")
+                         client_id="ID клиента", date="Дата", notifications="Уведомления", document="Документ",
+                         work_statuses="Статусы работ", client="Клиент")
 
 
 class PostAdmin(ModelView, model=Post):

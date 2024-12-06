@@ -1,10 +1,23 @@
+# Install the python-dotenv package
+# pip install python-dotenv
+
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
+from dotenv import load_dotenv
 
-# SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://postgres:sdr@localhost:5432/postgres"
+# Load environment variables from .env file
+load_dotenv()
 
-DATABASE_URL = "postgresql://postgres:fixremontadmin@localhost:5432/postgres"  # Update with your credentials
+# Retrieve database credentials from environment variables
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST', 'localhost')
+DB_PORT = os.getenv('DB_PORT', '5432')
+
+# Construct the DATABASE_URL
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
@@ -18,4 +31,3 @@ def get_db():
         return db
     finally:
         db.close()
-
