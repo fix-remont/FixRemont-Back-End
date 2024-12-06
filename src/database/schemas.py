@@ -388,3 +388,9 @@ class UserSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+class UserRegistrationSchema(BaseModel):
+    email: EmailStr
+    hashed_password: str
+    class Config:
+        orm_mode = True

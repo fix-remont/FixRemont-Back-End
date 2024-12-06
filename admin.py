@@ -446,11 +446,11 @@ class UserAdmin(ModelView, model=User):
     # TODO: не сохраняется захешированный пароль
     async def on_model_change(self, data, model, is_created, request):
         create_user_data = schemas.UserSchema(
-            email=data['email'],
+            email=data['email'] if 'email' in data else model.email,
             name=data['name'],
             surname=data['surname'],
             patronymic=data['patronymic'],
-            hashed_password=data['hashed_password'],
+            hashed_password=data['hashed_password'] if 'hashed_password' in data else model.hashed_password,
             phone=data['phone'],
             user_type=data['user_type'],
             notification_status=data['notification_status'],

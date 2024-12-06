@@ -8,7 +8,7 @@ from src.database import crud, models
 from src import routes
 from src.database import user_routes
 from src.database.db import engine, Base
-from src.database.schemas import UserResponse, Token
+from src.database.schemas import UserResponse, Token, UserSchema, UserRegistrationSchema
 from src.auth.auth_routes import verify_password, create_access_token, decode_token
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -88,13 +88,12 @@ admin.add_view(WorkStatusAdmin)
 app.include_router(routes.meta())
 
 
-# Register Route
-# @app.post("/register", response_model=UserResponse)
-# def register(user: UserCreate, db: Session = Depends(get_db)):
-#     db_user = get_user_by_email(db, user.email)
-#     if db_user:
-#         raise HTTPException(status_code=400, detail="Email already registered")
-#     return create_user(user, db)
+@app.post("/register", response_model=UserResponse)
+def register(user: UserRegistrationSchema, db: Session = Depends(get_db)):
+    db_user = get_user_by_email(db, user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    return create_user(db, user)
 
 
 # Login Route
